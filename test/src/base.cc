@@ -1,9 +1,10 @@
 #include "fsm.h"
+#include <assert.h>
 #include <iostream>
 
 using namespace std;
 
-int main() {
+void test1() {
   sfsm::State_Node *s1 = new sfsm::State_Node();
   sfsm::State_Node *s2 = new sfsm::State_Node();
   sfsm::State_Node *s3 = new sfsm::State_Node(sfsm::ACCEPT);
@@ -13,9 +14,13 @@ int main() {
 
   sfsm::FSM *m = sfsm::fsm(s1);
 
-  cout << m->transit("a") << endl;
-  cout << m->transit("b") << endl;
-  cout << m->transit("c") << endl;
+  assert(m->transit("a") == sfsm::WAIT);
+  assert(m->transit("b") == sfsm::MATCH);
+  assert(m->transit("c") == sfsm::QUIT);
+  assert(m->transit("d") == sfsm::QUIT);
+}
 
+int main() {
+  test1();
   return 0;
 }
