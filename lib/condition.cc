@@ -5,20 +5,32 @@ using namespace std;
 
 namespace sfsm {
 
-// StringCondition
-StringCondition::StringCondition(string value) { this->value = value; }
+// ValueCondition
+ValueCondition::ValueCondition(long value) { this->value = value; }
 
-bool StringCondition::match(void *sign) {
-  string *v = static_cast<string *>(sign);
-  return !v->compare(this->value);
+bool ValueCondition::match(long sign) { return sign == this->value; }
+
+// RangeCondition
+RangeCondition::RangeCondition(long start, long end) {
+  this->start = start;
+  this->end = end;
 }
+
+bool RangeCondition::match(long sign) {
+  return sign >= this->start && sign <= this->end;
+}
+
+// NotCondition
+NotCondition::NotCondition(long value) { this->value = value; }
+
+bool NotCondition::match(long sign) { return this->value != sign; };
 
 // OrCondition
 OrCondition::OrCondition(vector<Condition *> *conditionList) {
   this->conditionList = conditionList;
 }
 
-bool OrCondition::match(void *sign) {
+bool OrCondition::match(long sign) {
   for (vector<Condition *>::iterator it = this->conditionList->begin();
        it != this->conditionList->end(); ++it) {
     if ((*it)->match(sign)) {
@@ -34,7 +46,7 @@ AndCondition::AndCondition(vector<Condition *> *conditionList) {
   this->conditionList = conditionList;
 }
 
-bool AndCondition::match(void *sign) {
+bool AndCondition::match(long sign) {
   for (vector<Condition *>::iterator it = this->conditionList->begin();
        it != this->conditionList->end(); ++it) {
     if (!(*it)->match(sign)) {

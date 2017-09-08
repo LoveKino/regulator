@@ -17,11 +17,7 @@ FSM::FSM(State_Node *node) {
   this->current_state_type = WAIT;
 }
 
-TRANSITION_RESULT_TYPES FSM::transit(string sign) {
-  return this->transit(&sign);
-}
-
-TRANSITION_RESULT_TYPES FSM::transit(void *sign) {
+TRANSITION_RESULT_TYPES FSM::transit(long sign) {
   if (this->current_state_type != QUIT) {
     // match by sign
     State_Node *next = this->current_state->findTargetState(sign);
@@ -54,7 +50,7 @@ void State_Node::addTransition(Condition *condition, State_Node *node) {
   this->transitions.push_back(make_pair(condition, node));
 }
 
-State_Node *State_Node::findTargetState(void *sign) {
+State_Node *State_Node::findTargetState(long sign) {
   // search by action
   for (vector<Transition>::iterator it = this->transitions.begin();
        it != this->transitions.end(); ++it) {

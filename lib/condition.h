@@ -9,17 +9,40 @@ namespace sfsm {
 
 class Condition {
 public:
-  virtual bool match(void *sign) = 0;
+  // match function
+  virtual bool match(long sign) = 0;
 };
 
-// string
-class StringCondition : public Condition {
+// equal value
+class ValueCondition : public Condition {
 private:
-  string value;
+  long value;
 
 public:
-  StringCondition(string value);
-  bool match(void *sign);
+  ValueCondition(long value);
+  bool match(long sign);
+};
+
+// range
+class RangeCondition : public Condition {
+private:
+  long start;
+  long end;
+
+public:
+  RangeCondition(long start, long end);
+  bool match(long sign);
+};
+
+// Not
+
+class NotCondition : public Condition {
+private:
+  long value;
+
+public:
+  NotCondition(long value);
+  bool match(long sign);
 };
 
 // Or
@@ -29,7 +52,7 @@ private:
 
 public:
   OrCondition(vector<Condition *> *conditionList);
-  bool match(void *sign);
+  bool match(long sign);
 };
 
 // And
@@ -39,7 +62,7 @@ private:
 
 public:
   AndCondition(vector<Condition *> *conditionList);
-  bool match(void *sign);
+  bool match(long sign);
 };
 
 } // namespace sfsm

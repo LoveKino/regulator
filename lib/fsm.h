@@ -26,7 +26,7 @@ public:
   State_Node(STATE_NODE_TYPES type);
   STATE_NODE_TYPES getType();
   void addTransition(Condition *action, State_Node *node);
-  State_Node *findTargetState(void *action);
+  State_Node *findTargetState(long sign);
 };
 
 /**
@@ -43,8 +43,7 @@ public:
    * when accept an action, change the state of DFA, and return the new state
    * situation.
    */
-  TRANSITION_RESULT_TYPES transit(string sign);
-  TRANSITION_RESULT_TYPES transit(void *sign);
+  TRANSITION_RESULT_TYPES transit(long sign);
 };
 
 /**
