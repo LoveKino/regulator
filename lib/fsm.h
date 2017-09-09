@@ -1,6 +1,6 @@
 #pragma once
 
-#include "condition.h"
+#include "fsm_state.h"
 #include <iostream>
 #include <vector>
 
@@ -8,46 +8,24 @@ using namespace std;
 
 namespace sfsm {
 
-enum TRANSITION_RESULT_TYPES { WAIT, MATCH, QUIT };
-enum STATE_NODE_TYPES { ACCEPT, MIDDLE };
+typedef pair<State_Node *, State_Node *> RowStates;
 
-/**
- * Users can use those apis to compose a graph which can be used to build a fsm.
- */
-class State_Node { // recoding the relationship between nodes in FSM
-  typedef pair<Condition *, State_Node *> Transition;
+RowStates row(Condition *condition);
+RowStates row(Condition *condition, STATE_NODE_TYPES type);
+RowStates row(vector<Condition *> conditionList);
+RowStates row(vector<Condition *> conditionList, STATE_NODE_TYPES type);
+RowStates row(string str);
+RowStates row(string str, STATE_NODE_TYPES type);
 
-private:
-  STATE_NODE_TYPES type;
-  vector<Transition> transitions; // transitions from current state
-
-public:
-  State_Node();
-  State_Node(STATE_NODE_TYPES type);
-  STATE_NODE_TYPES getType();
-  void addTransition(Condition *action, State_Node *node);
-  State_Node *findTargetState(long sign);
-};
-
-/**
- * FSM
- */
-class FSM {
-private:
-  State_Node *current_state; // record current state
-  TRANSITION_RESULT_TYPES current_state_type;
-
-public:
-  FSM(State_Node *node);
-  /**
-   * when accept an action, change the state of DFA, and return the new state
-   * situation.
-   */
-  TRANSITION_RESULT_TYPES transit(long sign);
-};
+// connect two parts with condition
+RowStates connect(Condition *c1, Condition *c2);
+RowStates connect(RowStates row1, Condition *c);
+RowStates connect(RowStates row1, Condition *c, RowStates row2);
 
 /**
  * build a fsm from a state map
  */
 FSM *fsm(State_Node *node);
+FSM *fsm(RowStates rowState);
+
 } // namespace sfsm

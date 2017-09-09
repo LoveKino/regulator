@@ -4,61 +4,81 @@
 using namespace std;
 
 namespace sfsm {
-FSM *fsm(State_Node *node) {
-  cout << "calling fsm" << endl;
-  return new FSM(node);
-}
 
-/**
- * FSM
- */
-FSM::FSM(State_Node *node) {
-  this->current_state = node;
-  this->current_state_type = WAIT;
-}
+RowStates row(Condition *condition) { return row(condition, MIDDLE); };
 
-TRANSITION_RESULT_TYPES FSM::transit(long sign) {
-  if (this->current_state_type != QUIT) {
-    // match by sign
-    State_Node *next = this->current_state->findTargetState(sign);
+RowStates row(Condition *condition, STATE_NODE_TYPES type) {
+  vector<Condition *> list;
+  list.push_back(condition);
+  return row(list, type);
+};
 
-    // change current state
-    if (next == NULL) {
-      this->current_state_type = QUIT;
-      this->current_state = NULL;
-    } else {
-      this->current_state = next; // change current state
-      this->current_state_type = next->getType() == ACCEPT ? MATCH : WAIT;
-    }
+RowStates row(vector<Condition *> conditionList) {
+  return row(conditionList, MIDDLE);
+};
+
+RowStates row(vector<Condition *> conditionList, STATE_NODE_TYPES type) {
+  State_Node *start = new State_Node();
+  State_Node *cur = start;
+  vector<Condition *>::iterator it;
+  for (it = conditionList.begin(); it != conditionList.end(); ++it) {
+    State_Node *next = new State_Node();
+    cur->addTransition((*it), next);
+    cur = next;
   }
 
-  return this->current_state_type;
+  cur->setType(type);
+  return make_pair(start, cur);
 }
 
-/**
- * State_Node
- */
-State_Node::State_Node() { this->type = MIDDLE; }
+RowStates row(string str) { return row(str, MIDDLE); };
 
-State_Node::State_Node(STATE_NODE_TYPES type) { this->type = type; }
-
-STATE_NODE_TYPES State_Node::getType() { return this->type; }
-
-void State_Node::addTransition(Condition *condition, State_Node *node) {
-  // TODO check repeatness
-  // add to transitions
-  this->transitions.push_back(make_pair(condition, node));
-}
-
-State_Node *State_Node::findTargetState(long sign) {
-  // search by action
-  for (vector<Transition>::iterator it = this->transitions.begin();
-       it != this->transitions.end(); ++it) {
-    if (it->first->match(sign)) { // compare action
-      return it->second;
-    }
+RowStates row(string str, STATE_NODE_TYPES type) {
+  State_Node *start = new State_Node();
+  State_Node *cur = start;
+  string::iterator it;
+  for (it = str.begin(); it != str.end(); ++it) {
+    State_Node *next = new State_Node();
+    cur->addTransition(new ValueCondition(*it), next);
+    cur = next;
   }
 
-  return NULL;
+  cur->setType(type);
+  return make_pair(start, cur);
 }
+
+RowStates connect(Condition *c1, Condition *c2) {
+  State_Node *t1 = new State_Node();
+  State_Node *t2 = new State_Node();
+  State_Node *t3 = new State_Node();
+
+  t1->addTransition(c1, t2);
+  t2->addTransition(c2, t3);
+
+  return make_pair(t1, t3);
+}
+
+RowStates connect(RowStates row1, Condition *c) {
+  State_Node *frontHead = row1.first;
+  State_Node *frontEnd = row1.second;
+  State_Node *end = new State_Node();
+  frontEnd->addTransition(c, end);
+  return make_pair(frontHead, end);
+}
+
+RowStates connect(RowStates row1, Condition *c, RowStates row2) {
+  State_Node *frontHead = row1.first;
+  State_Node *frontEnd = row1.second;
+  State_Node *backHead = row2.first;
+  State_Node *backEnd = row2.second;
+
+  frontEnd->addTransition(c, backHead);
+
+  return make_pair(frontHead, backEnd);
+}
+
+FSM *fsm(State_Node *node) { return new FSM(node); }
+
+FSM *fsm(RowStates rowState) { return new FSM(rowState.first); }
+
 } // namespace sfsm
