@@ -5,80 +5,85 @@ using namespace std;
 
 namespace sfsm {
 
-RowStates row(Condition *condition) { return row(condition, MIDDLE); };
-
-RowStates row(Condition *condition, STATE_NODE_TYPES type) {
-  vector<Condition *> list;
-  list.push_back(condition);
-  return row(list, type);
-};
-
-RowStates row(vector<Condition *> conditionList) {
-  return row(conditionList, MIDDLE);
-};
-
-RowStates row(vector<Condition *> conditionList, STATE_NODE_TYPES type) {
-  State_Node *start = new State_Node();
-  State_Node *cur = start;
-  vector<Condition *>::iterator it;
-  for (it = conditionList.begin(); it != conditionList.end(); ++it) {
-    State_Node *next = new State_Node();
-    cur->addTransition((*it), next);
-    cur = next;
-  }
-
-  cur->setType(type);
-  return make_pair(start, cur);
-}
-
-RowStates row(string str) { return row(str, MIDDLE); };
-
-RowStates row(string str, STATE_NODE_TYPES type) {
-  State_Node *start = new State_Node();
-  State_Node *cur = start;
+vector<Condition *> getConditionsFromString(string str) {
   string::iterator it;
+  vector<Condition *> list;
   for (it = str.begin(); it != str.end(); ++it) {
-    State_Node *next = new State_Node();
-    cur->addTransition(new ValueCondition(*it), next);
-    cur = next;
+    list.push_back(new ValueCondition(*it));
   }
 
-  cur->setType(type);
-  return make_pair(start, cur);
+  return list;
 }
 
-RowStates connect(Condition *c1, Condition *c2) {
-  State_Node *t1 = new State_Node();
-  State_Node *t2 = new State_Node();
-  State_Node *t3 = new State_Node();
-
-  t1->addTransition(c1, t2);
-  t2->addTransition(c2, t3);
-
-  return make_pair(t1, t3);
+void copyNodeTransitionsToList(vector<State_Node *> list, State_Node *n) {
+  vector<State_Node *>::iterator it;
+  for (it = list.begin(); it != list.end(); ++it) {
+    (*it)->copyNodeTransitions(n);
+  }
 }
 
-RowStates connect(RowStates row1, Condition *c) {
-  State_Node *frontHead = row1.first;
-  State_Node *frontEnd = row1.second;
+void StateBox::init(Condition *condition) {
+  State_Node *start = new State_Node();
   State_Node *end = new State_Node();
-  frontEnd->addTransition(c, end);
-  return make_pair(frontHead, end);
+  start->addTransition(condition, end);
+
+  this->ends.push_back(end);
+  this->start = start;
 }
 
-RowStates connect(RowStates row1, Condition *c, RowStates row2) {
-  State_Node *frontHead = row1.first;
-  State_Node *frontEnd = row1.second;
-  State_Node *backHead = row2.first;
-  State_Node *backEnd = row2.second;
+StateBox::StateBox(Condition *condition) { this->init(condition); }
 
-  frontEnd->addTransition(c, backHead);
+StateBox::StateBox(long single) { this->init(new ValueCondition(single)); }
 
-  return make_pair(frontHead, backEnd);
+StateBox::StateBox(string str) {
+  if (!str.size()) {
+    throw runtime_error("string must not be empty when build a row of states.");
+  }
+  string::iterator it = str.begin();
+
+  this->init(new ValueCondition(*it));
+  ++it;
+
+  while (it != str.end()) {
+    StateBox *next = new StateBox(*it);
+    this->row(next);
+    ++it;
+  }
 }
+
+State_Node *StateBox::getStart() { return this->start; }
+
+StateBox *StateBox::row(StateBox *box) {
+  State_Node *secondHead = box->start;
+
+  copyNodeTransitionsToList(this->ends, secondHead);
+  secondHead->clear(); // TODO
+
+  this->ends.clear();
+  this->ends.insert(this->ends.end(), box->ends.begin(), box->ends.end());
+
+  return this;
+}
+
+StateBox *StateBox::row(string str) { return this->row(new StateBox(str)); }
+StateBox *StateBox::row(Condition *c) { return this->row(new StateBox(c)); }
+StateBox *StateBox::row(long single) { return this->row(new StateBox(single)); }
+
+StateBox *StateBox::col(StateBox *box) {
+  this->start->copyNodeTransitions(box->start); // merge first nodes
+  this->ends.insert(this->ends.end(), box->ends.begin(),
+                    box->ends.end()); // merge ends
+  // TODO clear
+  return this;
+}
+
+StateBox *StateBox::col(string str) { return this->col(new StateBox(str)); }
+
+StateBox *box(Condition *condition) { return new StateBox(condition); }
+StateBox *box(long single) { return new StateBox(single); }
+StateBox *box(string str) { return new StateBox(str); }
 
 FSM *fsm(State_Node *node) { return new FSM(node); }
-
-FSM *fsm(RowStates rowState) { return new FSM(rowState.first); }
+FSM *fsm(StateBox *box) { return new FSM(box->getStart()); }
 
 } // namespace sfsm

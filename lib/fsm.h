@@ -8,24 +8,40 @@ using namespace std;
 
 namespace sfsm {
 
-typedef pair<State_Node *, State_Node *> RowStates;
+typedef vector<State_Node *> State_Node_List;
+typedef pair<State_Node *, State_Node_List> RowStates; // startNode, endNodes
 
-RowStates row(Condition *condition);
-RowStates row(Condition *condition, STATE_NODE_TYPES type);
-RowStates row(vector<Condition *> conditionList);
-RowStates row(vector<Condition *> conditionList, STATE_NODE_TYPES type);
-RowStates row(string str);
-RowStates row(string str, STATE_NODE_TYPES type);
+class StateBox {
+private:
+  State_Node *start;
+  vector<State_Node *> ends;
 
-// connect two parts with condition
-RowStates connect(Condition *c1, Condition *c2);
-RowStates connect(RowStates row1, Condition *c);
-RowStates connect(RowStates row1, Condition *c, RowStates row2);
+  void init(Condition *condition);
+
+public:
+  StateBox(Condition *condition);
+  StateBox(long single);
+  StateBox(string str);
+
+  StateBox *row(StateBox *box);
+  StateBox *row(string str);
+  StateBox *row(Condition *c);
+  StateBox *row(long single);
+
+  StateBox *col(StateBox *box);
+  StateBox *col(string str);
+
+  State_Node *getStart();
+};
+
+StateBox *box(Condition *condition);
+StateBox *box(long single);
+StateBox *box(string str);
 
 /**
  * build a fsm from a state map
  */
 FSM *fsm(State_Node *node);
-FSM *fsm(RowStates rowState);
+FSM *fsm(StateBox *StateBox);
 
 } // namespace sfsm

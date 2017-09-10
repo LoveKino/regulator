@@ -48,20 +48,20 @@ public:
 // Or
 class OrCondition : public Condition {
 private:
-  vector<Condition *> *conditionList;
+  vector<Condition *> conditionList;
 
 public:
-  OrCondition(vector<Condition *> *conditionList);
+  OrCondition(vector<Condition *> conditionList);
   bool match(long sign);
 };
 
 // And
 class AndCondition : public Condition {
 private:
-  vector<Condition *> *conditionList;
+  vector<Condition *> conditionList;
 
 public:
-  AndCondition(vector<Condition *> *conditionList);
+  AndCondition(vector<Condition *> conditionList);
   bool match(long sign);
 };
 

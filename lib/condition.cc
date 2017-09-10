@@ -26,13 +26,13 @@ NotCondition::NotCondition(long value) { this->value = value; }
 bool NotCondition::match(long sign) { return this->value != sign; };
 
 // OrCondition
-OrCondition::OrCondition(vector<Condition *> *conditionList) {
+OrCondition::OrCondition(vector<Condition *> conditionList) {
   this->conditionList = conditionList;
 }
 
 bool OrCondition::match(long sign) {
-  for (vector<Condition *>::iterator it = this->conditionList->begin();
-       it != this->conditionList->end(); ++it) {
+  for (vector<Condition *>::iterator it = this->conditionList.begin();
+       it != this->conditionList.end(); ++it) {
     if ((*it)->match(sign)) {
       return true;
     }
@@ -42,13 +42,13 @@ bool OrCondition::match(long sign) {
 }
 
 // AndConcition
-AndCondition::AndCondition(vector<Condition *> *conditionList) {
+AndCondition::AndCondition(vector<Condition *> conditionList) {
   this->conditionList = conditionList;
 }
 
 bool AndCondition::match(long sign) {
-  for (vector<Condition *>::iterator it = this->conditionList->begin();
-       it != this->conditionList->end(); ++it) {
+  for (vector<Condition *>::iterator it = this->conditionList.begin();
+       it != this->conditionList.end(); ++it) {
     if (!(*it)->match(sign)) {
       return false;
     }

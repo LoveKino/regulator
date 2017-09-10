@@ -21,6 +21,7 @@ public:
 private:
   STATE_NODE_TYPES type;
   vector<Transition> transitions; // transitions from current state
+  vector<State_Node *> from;      // record from states
 
 public:
   State_Node();
@@ -29,8 +30,11 @@ public:
   void addTransition(Condition *action, State_Node *node);
   void setType(STATE_NODE_TYPES type);
   bool isEnd();
+  void clear();
+  void copyNodeTransitions(State_Node *n);
   vector<Transition> getTransitions();
-  State_Node *findTargetState(long sign);
+  vector<State_Node *> getFrom();
+  vector<State_Node *> findTargetState(long sign);
 };
 
 /**
@@ -38,11 +42,11 @@ public:
  */
 class FSM {
 private:
-  State_Node *current_state; // record current state
+  vector<State_Node *> current_states; // record current state
   TRANSITION_RESULT_TYPES current_state_type;
 
 public:
-  FSM(State_Node *node);
+  FSM(State_Node *startNode);
   /**
    * when accept an action, change the state of DFA, and return the new state
    * situation.
