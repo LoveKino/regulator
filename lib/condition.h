@@ -38,9 +38,10 @@ public:
 
 class NotCondition : public Condition {
 private:
-  long value;
+  Condition *con;
 
 public:
+  NotCondition(Condition *con);
   NotCondition(long value);
   bool match(long sign);
 };

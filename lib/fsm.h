@@ -31,17 +31,31 @@ public:
   StateBox *col(StateBox *box);
   StateBox *col(string str);
 
+  StateBox *cyc(); // a+
+
   State_Node *getStart();
+  vector<State_Node *> getEnds();
 };
 
 StateBox *box(Condition *condition);
 StateBox *box(long single);
 StateBox *box(string str);
+StateBox *box(long start, long end); // range
+
+StateBox *con(string str);
+StateBox *neg(string str);
 
 /**
  * build a fsm from a state map
  */
 FSM *fsm(State_Node *node);
 FSM *fsm(StateBox *StateBox);
+
+// some common state
+StateBox *hexDigit();
+StateBox *unicode();
+StateBox *jsonString();
+
+// TODO clear function
 
 } // namespace sfsm

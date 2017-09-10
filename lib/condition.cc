@@ -21,9 +21,12 @@ bool RangeCondition::match(long sign) {
 }
 
 // NotCondition
-NotCondition::NotCondition(long value) { this->value = value; }
+NotCondition::NotCondition(Condition *con) { this->con = con; }
+NotCondition::NotCondition(long value) {
+  this->con = new ValueCondition(value);
+}
 
-bool NotCondition::match(long sign) { return this->value != sign; };
+bool NotCondition::match(long sign) { return !this->con->match(sign); };
 
 // OrCondition
 OrCondition::OrCondition(vector<Condition *> conditionList) {

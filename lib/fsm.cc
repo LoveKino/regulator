@@ -55,13 +55,10 @@ State_Node *StateBox::getStart() { return this->start; }
 
 StateBox *StateBox::row(StateBox *box) {
   State_Node *secondHead = box->start;
-
   copyNodeTransitionsToList(this->ends, secondHead);
   secondHead->clear(); // TODO
-
   this->ends.clear();
   this->ends.insert(this->ends.end(), box->ends.begin(), box->ends.end());
-
   return this;
 }
 
@@ -73,17 +70,89 @@ StateBox *StateBox::col(StateBox *box) {
   this->start->copyNodeTransitions(box->start); // merge first nodes
   this->ends.insert(this->ends.end(), box->ends.begin(),
                     box->ends.end()); // merge ends
-  // TODO clear
   return this;
 }
 
 StateBox *StateBox::col(string str) { return this->col(new StateBox(str)); }
 
+// connect the end to head
+// TODO end match problem
+StateBox *StateBox::cyc() {
+  copyNodeTransitionsToList(this->ends, this->start);
+  return this;
+}
+
+vector<State_Node *> StateBox::getEnds() { return this->ends; }
+
 StateBox *box(Condition *condition) { return new StateBox(condition); }
 StateBox *box(long single) { return new StateBox(single); }
 StateBox *box(string str) { return new StateBox(str); }
+StateBox *con(string str) {
+  if (str.size() == 0) {
+    throw runtime_error("string is empty.");
+  }
+  string::iterator it = str.begin();
+  ++it;
+  StateBox *start = box(*it);
+  while (it != str.end()) {
+    start->col(box(*it)); // col next char
+    ++it;
+  }
+
+  return start;
+}
+
+StateBox *box(long start, long end) {
+  return new StateBox(new RangeCondition(start, end));
+}
+
+StateBox *neg(string str) {
+  vector<Condition *> list;
+  string::iterator it;
+  for (it = str.begin(); it != str.end(); ++it) {
+    list.push_back(new ValueCondition(*it));
+  }
+
+  Condition *con = new NotCondition(new AndCondition(list));
+
+  return new StateBox(con);
+}
 
 FSM *fsm(State_Node *node) { return new FSM(node); }
-FSM *fsm(StateBox *box) { return new FSM(box->getStart()); }
+
+FSM *fsm(StateBox *box) {
+  // mark ends nodes as ACCEPT nodes
+  vector<State_Node *>::iterator it;
+  cout << "-------" << box->getEnds().size() << endl;
+  for (it = box->getEnds().begin(); it != box->getEnds().end(); ++it) {
+    cout << "++++++" << (*it)->getType() << endl;
+    (*it)->setType(ACCEPT);
+  }
+
+  return fsm(box->getStart());
+}
+
+StateBox *hexDigit() {
+  return box('a', 'F')->col(box('0', '9'))->col(box('A', 'F'));
+}
+
+// \uD100
+StateBox *unicode() {
+  return box("\\u")
+      ->row(hexDigit())
+      ->row(hexDigit())
+      ->row(hexDigit())
+      ->row(hexDigit());
+};
+
+StateBox *jsonString() {
+  StateBox *SpecialEscape = box("\\")->row("\"\\/bfnrt")->col(unicode());
+  StateBox *rest = neg("\"\\");
+  StateBox *middle = SpecialEscape->col(rest); // TODO repeat
+
+  return box("\"")->row(middle)->row("\"")->
+      // ""
+      col("\"\"");
+}
 
 } // namespace sfsm
