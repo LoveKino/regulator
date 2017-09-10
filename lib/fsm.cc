@@ -123,9 +123,7 @@ FSM *fsm(State_Node *node) { return new FSM(node); }
 FSM *fsm(StateBox *box) {
   // mark ends nodes as ACCEPT nodes
   vector<State_Node *>::iterator it;
-  cout << "-------" << box->getEnds().size() << endl;
   for (it = box->getEnds().begin(); it != box->getEnds().end(); ++it) {
-    cout << "++++++" << (*it)->getType() << endl;
     (*it)->setType(ACCEPT);
   }
 
@@ -148,7 +146,7 @@ StateBox *unicode() {
 StateBox *jsonString() {
   StateBox *SpecialEscape = box("\\")->row("\"\\/bfnrt")->col(unicode());
   StateBox *rest = neg("\"\\");
-  StateBox *middle = SpecialEscape->col(rest); // TODO repeat
+  StateBox *middle = SpecialEscape->col(rest)->cyc();
 
   return box("\"")->row(middle)->row("\"")->
       // ""

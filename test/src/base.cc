@@ -48,7 +48,14 @@ int main() {
   test(sfsm::fsm(sfsm::box("ab")->cyc()), "ababab");
   test(sfsm::fsm(sfsm::box("ab")->cyc()->row("c")), "ababc");
 
-  test(sfsm::fsm(sfsm::jsonString()), "\"\"");
+  // json string
+  test(sfsm::fsm(sfsm::jsonString()), "\"\"");           // empty string
+  test(sfsm::fsm(sfsm::jsonString()), "\"123Kjd_&%^\""); // normal
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\u1323\"");    // unicode
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\b\"");        // escape
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\n\"");        // escape
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\\"\"");       // escape
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\\\\"");       // escape
 
   // quit
   testQuit(sfsm::fsm(sfsm::box("abc")->col("ade")), "afe");
