@@ -63,14 +63,14 @@ int main() {
   test(sfsm::fsm(sfsm::box("o")->row(sfsm::star(sfsm::box("abc")))), "o");
 
   // json number
-  test(sfsm::fsm(sfsm::jsonNumber()), "1");             // single
-  test(sfsm::fsm(sfsm::jsonNumber()), "123");           // integer
-  test(sfsm::fsm(sfsm::jsonNumber()), "-123");          // negative
-  test(sfsm::fsm(sfsm::jsonNumber()), "22.890");        //
-  test(sfsm::fsm(sfsm::jsonNumber()), "0.12");          //
-  testQuit(sfsm::fsm(sfsm::jsonNumber()), "012");       //
-  testQuit(sfsm::fsm(sfsm::jsonNumber()), "-48.5e10");  //
-  testQuit(sfsm::fsm(sfsm::jsonNumber()), "-48.5e-10"); //
+  test(sfsm::fsm(sfsm::jsonNumber()), "1");         // single
+  test(sfsm::fsm(sfsm::jsonNumber()), "123");       // integer
+  test(sfsm::fsm(sfsm::jsonNumber()), "-123");      // negative
+  test(sfsm::fsm(sfsm::jsonNumber()), "22.890");    //
+  test(sfsm::fsm(sfsm::jsonNumber()), "0.12");      //
+  testQuit(sfsm::fsm(sfsm::jsonNumber()), "012");   //
+  test(sfsm::fsm(sfsm::jsonNumber()), "-48.5e10");  //
+  test(sfsm::fsm(sfsm::jsonNumber()), "-48.5e-10"); //
 
   // quit
   testQuit(sfsm::fsm(sfsm::box("abc")->col("ade")), "afe");

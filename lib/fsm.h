@@ -47,6 +47,8 @@ StateBox *box(long start, long end); // range
 StateBox *con(string str);
 StateBox *neg(string str);
 StateBox *star(StateBox *item);
+StateBox *optional(StateBox *item);
+StateBox *optional(string str);
 
 /**
  * build a fsm from a state map

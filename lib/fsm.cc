@@ -116,8 +116,9 @@ StateBox *con(string str) {
     throw runtime_error("string is empty.");
   }
   string::iterator it = str.begin();
-  ++it;
   StateBox *start = box(*it);
+
+  ++it;
   while (it != str.end()) {
     start->col(box(*it)); // col next char
     ++it;
@@ -142,7 +143,11 @@ StateBox *neg(string str) {
   return new StateBox(con);
 }
 
-StateBox *star(StateBox *item) { return box()->col(item->cyc()); }
+StateBox *optional(StateBox *item) { return box()->col(item); }
+
+StateBox *optional(string str) { return optional(box(str)); }
+
+StateBox *star(StateBox *item) { return optional(item->cyc()); }
 
 FSM *fsm(State_Node *node) { return new FSM(node); }
 
@@ -183,27 +188,17 @@ StateBox *digit() { return box('0', '9'); }
 
 // -123, 123, 2450.123, 48.5E+10, 48.5E-10
 StateBox *jsonNumber() {
-  StateBox *integer = box()->col("-")->
+  StateBox *integer = optional("-")->
                       //
                       row(box("0")->
                           // [1-9][0-9]*
                           col(box('1', '9')->row(star(digit()))));
 
-  StateBox *fraction = box()->
-                       //
-                       col(box(".")->row(star(digit())));
+  StateBox *fraction = box(".")->row(star(digit()));
 
-  StateBox *science = box()->
-                      //
-                      col(con("eE")
-                              ->
-                          //
-                          row(box()->col(con("+-")))
-                              ->
-                          //
-                          row(star(digit())));
+  StateBox *science = con("eE")->row(optional(con("+-")))->row(star(digit()));
 
-  return integer->row(fraction)->row(science);
+  return integer->row(optional(fraction))->row(optional(science));
 }
 
 } // namespace sfsm
