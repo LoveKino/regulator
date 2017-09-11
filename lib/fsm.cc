@@ -31,6 +31,12 @@ void StateBox::init(Condition *condition) {
   this->start = start;
 }
 
+StateBox::StateBox() {
+  State_Node *n = new State_Node();
+  this->start = n;
+  this->ends.push_back(n);
+}
+
 StateBox::StateBox(Condition *condition) { this->init(condition); }
 
 StateBox::StateBox(long single) { this->init(new ValueCondition(single)); }
@@ -54,11 +60,27 @@ StateBox::StateBox(string str) {
 State_Node *StateBox::getStart() { return this->start; }
 
 StateBox *StateBox::row(StateBox *box) {
-  State_Node *secondHead = box->start;
-  copyNodeTransitionsToList(this->ends, secondHead);
-  secondHead->clear(); // TODO
-  this->ends.clear();
-  this->ends.insert(this->ends.end(), box->ends.begin(), box->ends.end());
+  copyNodeTransitionsToList(this->ends, box->start);
+  box->start->clear(); // TODO
+
+  vector<State_Node *> nextEnds;
+  vector<State_Node *>::iterator it;
+  bool existEmpty = false;
+  for (it = box->ends.begin(); it != box->ends.end(); ++it) {
+    if (*it == box->start) { // exist empty box
+      existEmpty = true;
+    } else {
+      this->ends.push_back(*it);
+      nextEnds.push_back(*it);
+    }
+  }
+
+  if (!existEmpty) {
+    this->ends.clear();
+  }
+
+  this->ends.insert(this->ends.end(), nextEnds.begin(), nextEnds.end());
+
   return this;
 }
 
@@ -70,6 +92,7 @@ StateBox *StateBox::col(StateBox *box) {
   this->start->copyNodeTransitions(box->start); // merge first nodes
   this->ends.insert(this->ends.end(), box->ends.begin(),
                     box->ends.end()); // merge ends
+
   return this;
 }
 
@@ -84,6 +107,7 @@ StateBox *StateBox::cyc() {
 
 vector<State_Node *> StateBox::getEnds() { return this->ends; }
 
+StateBox *box() { return new StateBox(); }
 StateBox *box(Condition *condition) { return new StateBox(condition); }
 StateBox *box(long single) { return new StateBox(single); }
 StateBox *box(string str) { return new StateBox(str); }
@@ -118,6 +142,8 @@ StateBox *neg(string str) {
   return new StateBox(con);
 }
 
+StateBox *star(StateBox *item) { return box()->col(item->cyc()); }
+
 FSM *fsm(State_Node *node) { return new FSM(node); }
 
 FSM *fsm(StateBox *box) {
@@ -151,6 +177,33 @@ StateBox *jsonString() {
   return box("\"")->row(middle)->row("\"")->
       // ""
       col("\"\"");
+}
+
+StateBox *digit() { return box('0', '9'); }
+
+// -123, 123, 2450.123, 48.5E+10, 48.5E-10
+StateBox *jsonNumber() {
+  StateBox *integer = box()->col("-")->
+                      //
+                      row(box("0")->
+                          // [1-9][0-9]*
+                          col(box('1', '9')->row(star(digit()))));
+
+  StateBox *fraction = box()->
+                       //
+                       col(box(".")->row(star(digit())));
+
+  StateBox *science = box()->
+                      //
+                      col(con("eE")
+                              ->
+                          //
+                          row(box()->col(con("+-")))
+                              ->
+                          //
+                          row(star(digit())));
+
+  return integer->row(fraction)->row(science);
 }
 
 } // namespace sfsm
