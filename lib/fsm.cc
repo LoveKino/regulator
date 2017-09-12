@@ -138,7 +138,7 @@ StateBox *neg(string str) {
     list.push_back(new ValueCondition(*it));
   }
 
-  Condition *con = new NotCondition(new AndCondition(list));
+  Condition *con = new NotCondition(new OrCondition(list));
 
   return new StateBox(con);
 }
@@ -175,7 +175,7 @@ StateBox *unicode() {
 };
 
 StateBox *jsonString() {
-  StateBox *SpecialEscape = box("\\")->row("\"\\/bfnrt")->col(unicode());
+  StateBox *SpecialEscape = box("\\")->row(con("\"\\/bfnrt"))->col(unicode());
   StateBox *rest = neg("\"\\");
   StateBox *middle = SpecialEscape->col(rest)->cyc();
 

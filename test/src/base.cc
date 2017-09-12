@@ -48,14 +48,21 @@ int main() {
   test(sfsm::fsm(sfsm::box("ab")->cyc()), "ababab");
   test(sfsm::fsm(sfsm::box("ab")->cyc()->row("c")), "ababc");
 
+  // neg
+  testQuit(sfsm::fsm(sfsm::neg("abc")), "a");
+  testQuit(sfsm::fsm(sfsm::neg("abc")), "b");
+  testQuit(sfsm::fsm(sfsm::neg("abc")), "c");
+  test(sfsm::fsm(sfsm::neg("abc")), "d");
+
   // json string
-  test(sfsm::fsm(sfsm::jsonString()), "\"\"");           // empty string
-  test(sfsm::fsm(sfsm::jsonString()), "\"123Kjd_&%^\""); // normal
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\u1323\"");    // unicode
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\b\"");        // escape
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\n\"");        // escape
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\\"\"");       // escape
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\\\\"");       // escape
+  test(sfsm::fsm(sfsm::jsonString()), "\"\"");              // empty string
+  test(sfsm::fsm(sfsm::jsonString()), "\"123Kjd_&%^\"");    // normal
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\u1323\"");       // unicode
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\b\"");           // escape
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\n\"");           // escape
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\\"\"");          // escape
+  test(sfsm::fsm(sfsm::jsonString()), "\"\\\\\"");          // escape
+  testQuit(sfsm::fsm(sfsm::jsonString()), "\"a\":\"123\""); // escape
 
   test(sfsm::fsm(sfsm::box("o")->row(sfsm::box()->col("a"))), "o");
   test(sfsm::fsm(sfsm::box("o")->row(sfsm::star(sfsm::box("abc")))), "oabc");
