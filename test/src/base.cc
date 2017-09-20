@@ -1,92 +1,137 @@
-#include "../../lib/fsm.h"
-#include <assert.h>
+#include "../../lib/dfa.h"
+#include "../../lib/nfa.h"
+#include "../../lib/parser.h"
+#include "assert.h"
 #include <iostream>
 
+using namespace sfsm;
 using namespace std;
 
-void test(sfsm::FSM *m, string text) {
-  cout << "[" << text << "]" << endl;
-  string::iterator it;
+void testDisplayDFA() {
+  cout << "[display dfa]" << endl;
+  DFA dfa;
+  dfa.addTransition(0, "a", 1);
+  dfa.addTransition(0, "b", 2);
+  dfa.addTransition(1, "c", 3);
 
-  unsigned long index = 0;
-  for (it = text.begin(); it != text.end(); ++it) {
-    sfsm::TRANSITION_RESULT_TYPES t = m->transit(*it);
-    cout << *it << " " << t << endl;
-    if (index == text.size() - 1) {
-      assert(t == sfsm::MATCH);
-    } else {
-      assert(t == sfsm::WAIT || t == sfsm::MATCH);
-    }
-    index++;
-  }
+  dfa.display();
 }
 
-void testQuit(sfsm::FSM *m, string text) {
-  cout << "[" << text << "]" << endl;
-  string::iterator it;
+void testEqualDFA() {
+  cout << "[equal dfa]" << endl;
+  DFA dfa1;
+  dfa1.addTransition(0, "a", 1);
+  dfa1.addTransition(0, "b", 2);
+  dfa1.addTransition(1, "c", 3);
+  dfa1.addTransition(1, "d", 4);
 
-  unsigned long index = 0;
-  for (it = text.begin(); it != text.end(); ++it) {
-    sfsm::TRANSITION_RESULT_TYPES t = m->transit(*it);
-    cout << *it << " " << t << endl;
-    ;
-    if (index == text.size() - 1) {
-      assert(t == sfsm::QUIT);
-    }
-    index++;
-  }
+  DFA dfa2;
+  dfa2.addTransition(0, "a", 1);
+  dfa2.addTransition(0, "b", 2);
+  dfa2.addTransition(1, "c", 3);
+  dfa2.addTransition(1, "d", 4);
+
+  DFA dfa3;
+  dfa3.addTransition(0, "a", 1);
+  dfa3.addTransition(0, "b", 2);
+  dfa3.addTransition(1, "c", 3);
+  dfa3.addTransition(1, "e", 4);
+
+  assert(dfa1 == dfa2);
+  assert(dfa1 != dfa3);
+}
+
+void testNFAEpsilonClosure() {
+  cout << "[nfa epsilonClosure]" << endl;
+  NFA nfa;
+
+  nfa.addTransition(0, "a", 1);
+  nfa.addTransition(1, "b", 2);
+  nfa.addEpsilonTransition(1, 3);
+  nfa.addTransition(3, "c", 4);
+
+  // DFA dfa = nfa.toDFA();
+  NFA::NFA_State_Set set0;
+  set0.insert(0);
+  nfa.displayNFA_State_set(nfa.epsilonClosure(set0));
+
+  NFA::NFA_State_Set set1;
+  set1.insert(1);
+  nfa.displayNFA_State_set(nfa.epsilonClosure(set1));
+
+  NFA::NFA_State_Set set2;
+  set2.insert(2);
+  nfa.displayNFA_State_set(nfa.epsilonClosure(set2));
+
+  // dfa.display();
+}
+
+void testNFAToDFA() {
+  cout << "[nfa todfa]" << endl;
+
+  // empty
+  NFA nfa1;
+  DFA tar1;
+  assert(nfa1.toDFA(0) == tar1);
+
+  // NFA as DFA
+  NFA nfa2;
+  nfa2.addTransition(0, "a", 1);
+  nfa2.addTransition(0, "b", 2);
+  nfa2.addTransition(1, "c", 3);
+  nfa2.addTransition(2, "d", 4);
+  nfa2.toDFA(0).display();
+
+  // NFA contains sets
+
+  NFA nfa3;
+  nfa3.addTransition(0, "a", 1);
+  nfa3.addTransition(0, "b", 2);
+  nfa3.addTransition(1, "c", 3);
+  nfa3.addTransition(2, "d", 4);
+  nfa3.addTransition(2, "d", 3);
+
+  nfa3.toDFA(0).display();
+
+  // NFA contains epsilon
+
+  NFA nfa4;
+  nfa4.addTransition(0, "a", 1);
+  nfa4.addTransition(0, "a", 2);
+  nfa4.addTransition(1, "b", 3);
+  nfa4.addEpsilonTransition(1, 4);
+  nfa4.addTransition(4, "c", 5);
+  nfa4.addTransition(4, "d", 6);
+
+  nfa4.toDFA(0).display();
+
+  // dfa.display();
+}
+
+void testThompsonConstruct() {
+  cout << "[Thompson construction]" << endl;
+  ThompsonConstruction tc;
+
+  auto tnfa = tc.concatExpression(
+      tc.symbol("a"), tc.unionExpression(tc.symbol("b"), tc.symbol("c")));
+
+  tnfa.getNFA().display();
+  tnfa.getNFA().toDFA(tnfa.getStart()).display();
+
+  cout << "test star-------------" << endl;
+
+  auto tnfa2 = tc.star(tc.concatExpression(tc.symbol("a"), tc.symbol("b")));
+  tnfa2.getNFA().display();
+  cout << "to dfa" << endl;
+  cout << tnfa2.getStart() << "," << tnfa2.getEnd() << endl;
+  tnfa2.getNFA().toDFA(tnfa2.getStart()).display();
 }
 
 int main() {
-  // normal
-  test(sfsm::fsm(sfsm::box("ab")), "ab");
-  test(sfsm::fsm(sfsm::box("a")->col("b")->row("c")), "bc");
-  test(sfsm::fsm(sfsm::box("a")->col("b")->row("c")), "ac");
-  test(sfsm::fsm(sfsm::box("abc")->col("ade")), "abc");
-  test(sfsm::fsm(sfsm::box("abc")->col("ade")), "ade");
-  test(sfsm::fsm(sfsm::box("ab")->cyc()), "ab");
-  test(sfsm::fsm(sfsm::box("ab")->cyc()), "ababab");
-  test(sfsm::fsm(sfsm::box("ab")->cyc()->row("c")), "ababc");
-
-  // neg
-  testQuit(sfsm::fsm(sfsm::neg("abc")), "a");
-  testQuit(sfsm::fsm(sfsm::neg("abc")), "b");
-  testQuit(sfsm::fsm(sfsm::neg("abc")), "c");
-  test(sfsm::fsm(sfsm::neg("abc")), "d");
-
-  // json string
-  test(sfsm::fsm(sfsm::jsonString()), "\"\"");              // empty string
-  test(sfsm::fsm(sfsm::jsonString()), "\"123Kjd_&%^\"");    // normal
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\u1323\"");       // unicode
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\b\"");           // escape
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\n\"");           // escape
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\\"\"");          // escape
-  test(sfsm::fsm(sfsm::jsonString()), "\"\\\\\"");          // escape
-  testQuit(sfsm::fsm(sfsm::jsonString()), "\"a\":\"123\""); // escape
-
-  test(sfsm::fsm(sfsm::box("o")->row(sfsm::box()->col("a"))), "o");
-  test(sfsm::fsm(sfsm::box("o")->row(sfsm::star(sfsm::box("abc")))), "oabc");
-  test(sfsm::fsm(sfsm::box("o")->row(sfsm::star(sfsm::box("abc")))), "oabcabc");
-  test(sfsm::fsm(sfsm::box("o")->row(sfsm::star(sfsm::box("abc")))), "o");
-
-  // json number
-  test(sfsm::fsm(sfsm::jsonNumber()), "1");         // single
-  test(sfsm::fsm(sfsm::jsonNumber()), "123");       // integer
-  test(sfsm::fsm(sfsm::jsonNumber()), "-123");      // negative
-  test(sfsm::fsm(sfsm::jsonNumber()), "22.890");    //
-  test(sfsm::fsm(sfsm::jsonNumber()), "0.12");      //
-  testQuit(sfsm::fsm(sfsm::jsonNumber()), "012");   //
-  test(sfsm::fsm(sfsm::jsonNumber()), "-48.5e10");  //
-  test(sfsm::fsm(sfsm::jsonNumber()), "-48.5e-10"); //
-
-  // quit
-  testQuit(sfsm::fsm(sfsm::box("abc")->col("ade")), "afe");
-  testQuit(sfsm::fsm(sfsm::box("ab")), "abe");
-
-  // border
-  test(sfsm::fsm(sfsm::box()->row("ab")), "ab");
-  test(sfsm::fsm(sfsm::box()->col("ab")->row("c")), "abc");
-  test(sfsm::fsm(sfsm::box()->col("ab")->row("c")), "c");
-  test(sfsm::fsm(sfsm::box()->col("a")->row("b")->row(sfsm::box())), "ab");
+  testDisplayDFA();
+  testEqualDFA();
+  testNFAEpsilonClosure();
+  testNFAToDFA();
+  testThompsonConstruct();
   return 0;
 }
