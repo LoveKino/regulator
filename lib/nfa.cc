@@ -86,16 +86,11 @@ unordered_set<string> NFA::getInputSet(NFA_State_Set set) {
 }
 
 NFA::NFA_State_Set NFA::epsilonClosure(NFA_State_Set nfaSet) {
-  cout << "closure of -------" << endl;
-  this->displayNFA_State_set(nfaSet);
-
   EpsilonListMap epsilonListMap = this->epsilonTransitions;
   unsigned long prevSize = 0;
 
   while (prevSize < nfaSet.size()) {
     prevSize = nfaSet.size();
-    cout << "nfa set------------" << endl;
-    this->displayNFA_State_set(nfaSet);
 
     for (auto fp = nfaSet.begin(); fp != nfaSet.end(); ++fp) {
       auto findedItem = epsilonListMap.find(*fp);
@@ -115,25 +110,26 @@ NFA::NFA_State_Set NFA::epsilonClosure(NFA_State_Set nfaSet) {
   return nfaSet;
 }
 
-DFA NFA::toDFA(unsigned int startState) {
+pair<DFA, NFA::DFA_StateNFA_SET_MAP> NFA::toDFA(unsigned int startState) {
   NFA::NFA_State_Set start;
   start.insert(startState);
   start = this->epsilonClosure(start);
 
   DFA dfa;
+  DFA_StateNFA_SET_MAP stateMap;
 
-  map<NFA::NFA_State_Set, int> dfaStates; // store (set, state)
+  map<NFA::NFA_State_Set, unsigned int> dfaStates; // store (set, state)
   vector<NFA::NFA_State_Set> newAdded;
   unsigned int last = 0;
   unsigned int offset = 0;
 
-  dfaStates[start] = 0;
+  dfaStates[start] = 0; // default, the start state is 0
   newAdded.push_back(start);
 
   while (newAdded.size()) {
     vector<NFA::NFA_State_Set> newAddedTmp;
 
-    int index = 0;
+    unsigned int index = 0;
     for (auto it = newAdded.begin(); it != newAdded.end(); ++it, ++index) {
       // *it is a closure
       auto inputs = this->getInputSet(*it);
@@ -147,6 +143,7 @@ DFA NFA::toDFA(unsigned int startState) {
           // finded new item
           last++;
           dfaStates[newItem] = last;
+          stateMap[last] = newItem;
           newAddedTmp.push_back(newItem);
           // build the connection from (index + offset) -> last
           dfa.addTransition(currentDFAState, *j, last);
@@ -160,7 +157,7 @@ DFA NFA::toDFA(unsigned int startState) {
     newAdded = newAddedTmp;
   }
 
-  return dfa;
+  return pair<DFA, DFA_StateNFA_SET_MAP>(dfa, stateMap);
 }
 
 void NFA::displayNFA_State_set(NFA_State_Set set) {

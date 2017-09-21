@@ -16,6 +16,7 @@ public:
   typedef unordered_map<string, NFA_State_Set> TransitionMap;
   typedef unordered_map<unsigned int, TransitionMap> TransitionGraph;
   typedef unordered_map<unsigned int, NFA_State_Set> EpsilonListMap;
+  typedef unordered_map<unsigned int, NFA_State_Set> DFA_StateNFA_SET_MAP;
 
 private:
   TransitionGraph transitionGraph;
@@ -46,7 +47,7 @@ public:
   string calNFASetId(NFA_State_Set set);
 
   // convert to DFA
-  DFA toDFA(unsigned int start);
+  pair<DFA, DFA_StateNFA_SET_MAP> toDFA(unsigned int start);
 
   // for test
   void displayNFA_State_set(NFA_State_Set set);

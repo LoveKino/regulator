@@ -72,7 +72,7 @@ void testNFAToDFA() {
   // empty
   NFA nfa1;
   DFA tar1;
-  assert(nfa1.toDFA(0) == tar1);
+  assert(nfa1.toDFA(0).first == tar1);
 
   // NFA as DFA
   NFA nfa2;
@@ -80,7 +80,7 @@ void testNFAToDFA() {
   nfa2.addTransition(0, "b", 2);
   nfa2.addTransition(1, "c", 3);
   nfa2.addTransition(2, "d", 4);
-  nfa2.toDFA(0).display();
+  nfa2.toDFA(0).first.display();
 
   // NFA contains sets
 
@@ -91,7 +91,7 @@ void testNFAToDFA() {
   nfa3.addTransition(2, "d", 4);
   nfa3.addTransition(2, "d", 3);
 
-  nfa3.toDFA(0).display();
+  nfa3.toDFA(0).first.display();
 
   // NFA contains epsilon
 
@@ -103,7 +103,7 @@ void testNFAToDFA() {
   nfa4.addTransition(4, "c", 5);
   nfa4.addTransition(4, "d", 6);
 
-  nfa4.toDFA(0).display();
+  nfa4.toDFA(0).first.display();
 
   // dfa.display();
 }
@@ -116,7 +116,7 @@ void testThompsonConstruct() {
       tc.symbol("a"), tc.unionExpression(tc.symbol("b"), tc.symbol("c")));
 
   tnfa.getNFA().display();
-  tnfa.getNFA().toDFA(tnfa.getStart()).display();
+  tnfa.getNFA().toDFA(tnfa.getStart()).first.display();
 
   cout << "test star-------------" << endl;
 
@@ -124,28 +124,56 @@ void testThompsonConstruct() {
   tnfa2.getNFA().display();
   cout << "to dfa" << endl;
   cout << tnfa2.getStart() << "," << tnfa2.getEnd() << endl;
-  tnfa2.getNFA().toDFA(tnfa2.getStart()).display();
+  tnfa2.getNFA().toDFA(tnfa2.getStart()).first.display();
+}
+
+void displayParser(vector<string> regs) {
+  cout << "[display parse result]" << endl;
+  Parser parser;
+  for (auto it = regs.begin(); it != regs.end(); ++it) {
+    ThompsonNFA tnfa = parser.parse(*it);
+
+    cout << "regular expression is " << *it << endl;
+    tnfa.getNFA().toDFA(tnfa.getStart()).first.display();
+  }
+}
+
+void testRegMatch(string reg, vector<string> texts) {
+  cout << "[test reg match]" << endl;
+  RegularExp exp(reg);
+  for (auto it = texts.begin(); it != texts.end(); ++it) {
+    cout << "regular expression is " << reg << ", text is " << *it << endl;
+    assert(exp.test(*it));
+  }
+}
+
+void testRegNotMatch(string reg, vector<string> texts) {
+  cout << "[test reg not match]" << endl;
+  RegularExp exp(reg);
+  for (auto it = texts.begin(); it != texts.end(); ++it) {
+    cout << "regular expression is " << reg << ", text is " << *it << endl;
+    assert(!exp.test(*it));
+  }
+}
+
+void testRegTest() {
+  cout << "regular test" << endl;
+  testRegMatch("a", vector<string>{"a"});
+  testRegNotMatch("a", vector<string>{"b", "c"});
+
+  testRegMatch("ab", vector<string>{"ab"});
+  testRegNotMatch("ab", vector<string>{"b", "a", "abc"});
+
+  testRegMatch("a|b", vector<string>{"a", "b"});
+  testRegNotMatch("a|b", vector<string>{"ab"});
+
+  testRegMatch("a(b|c)d", vector<string>{"abd", "acd"});
+  testRegNotMatch("a(b|c)d", vector<string>{"abcd", "ad"});
 }
 
 void testParser() {
   cout << "[Parser]" << endl;
-  Parser parser;
-
-  ThompsonNFA tnfa1 = parser.parse("ab");
-  tnfa1.getNFA().toDFA(tnfa1.getStart()).display();
-
-  ThompsonNFA tnfa2 = parser.parse("abc");
-  tnfa2.getNFA().toDFA(tnfa2.getStart()).display();
-
-  ThompsonNFA tnfa3 = parser.parse("ab|c");
-  tnfa3.getNFA().toDFA(tnfa3.getStart()).display();
-
-  // test bracket
-  ThompsonNFA tnfa4 = parser.parse("a(b|c)");
-  tnfa4.getNFA().toDFA(tnfa4.getStart()).display();
-
-  ThompsonNFA tnfa5 = parser.parse("(a(b|c)|ef)d");
-  tnfa5.getNFA().toDFA(tnfa5.getStart()).display();
+  displayParser(vector<string>{"ab", "abc", "ab|c", "a(b|c)", "(a(b|c)|ef)d"});
 }
 
 int main() {
@@ -155,5 +183,6 @@ int main() {
   testNFAToDFA();
   testThompsonConstruct();
   testParser();
+  testRegTest();
   return 0;
 }

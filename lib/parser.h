@@ -56,4 +56,15 @@ private:
 public:
   ThompsonNFA parse(string regExp);
 };
+
+class RegularExp {
+private:
+  DFA dfa;
+  unordered_set<unsigned int> ends;
+
+public:
+  RegularExp(string regExp);
+
+  bool test(string tar);
+};
 } // namespace sfsm

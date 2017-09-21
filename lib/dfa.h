@@ -21,6 +21,8 @@ public:
 
   void display(); // for debug
 
+  int transit(unsigned int from, string letter);
+
   bool operator==(DFA &other);
   bool operator!=(DFA &other);
 };

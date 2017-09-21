@@ -29,6 +29,20 @@ void DFA::display() {
   }
 }
 
+int DFA::transit(unsigned int from, string letter) {
+  auto it = this->transitionGraph.find(from);
+  if (it == this->transitionGraph.end()) {
+    return -1;
+  }
+  auto transitionMap = this->transitionGraph[from];
+  auto tar = transitionMap.find(letter);
+  if (tar == transitionMap.end()) {
+    return -1;
+  }
+
+  return transitionMap[letter];
+}
+
 bool DFA::operator==(DFA &other) {
   return this->transitionGraph == other.transitionGraph;
 }
