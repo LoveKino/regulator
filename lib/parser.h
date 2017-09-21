@@ -38,6 +38,21 @@ public:
 };
 
 class Parser {
+private:
+  ThompsonConstruction tc;
+  static char OR_OP;
+  static char RIGHT_BRACKET;
+  static char LEFT_BRACKET;
+  static char VIRTUAL_CAT_OP;
+
+  bool isNormalLetter(char letter);
+  void runUnionOp(vector<ThompsonNFA> &valueStack);
+  void runConcatOp(vector<ThompsonNFA> &valueStack);
+  bool isNextConcated(char currentLetter, char nextLetter);
+
+  // if meet LEFT_BRACKET return true, otherwise return false.
+  bool reduceOpsStack(vector<ThompsonNFA> &valueStack, vector<char> &ops);
+
 public:
   ThompsonNFA parse(string regExp);
 };

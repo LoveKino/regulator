@@ -127,11 +127,33 @@ void testThompsonConstruct() {
   tnfa2.getNFA().toDFA(tnfa2.getStart()).display();
 }
 
+void testParser() {
+  cout << "[Parser]" << endl;
+  Parser parser;
+
+  ThompsonNFA tnfa1 = parser.parse("ab");
+  tnfa1.getNFA().toDFA(tnfa1.getStart()).display();
+
+  ThompsonNFA tnfa2 = parser.parse("abc");
+  tnfa2.getNFA().toDFA(tnfa2.getStart()).display();
+
+  ThompsonNFA tnfa3 = parser.parse("ab|c");
+  tnfa3.getNFA().toDFA(tnfa3.getStart()).display();
+
+  // test bracket
+  ThompsonNFA tnfa4 = parser.parse("a(b|c)");
+  tnfa4.getNFA().toDFA(tnfa4.getStart()).display();
+
+  ThompsonNFA tnfa5 = parser.parse("(a(b|c)|ef)d");
+  tnfa5.getNFA().toDFA(tnfa5.getStart()).display();
+}
+
 int main() {
   testDisplayDFA();
   testEqualDFA();
   testNFAEpsilonClosure();
   testNFAToDFA();
   testThompsonConstruct();
+  testParser();
   return 0;
 }
