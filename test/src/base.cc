@@ -156,21 +156,37 @@ void testRegNotMatch(string reg, vector<string> texts) {
   }
 }
 
+typedef vector<string> StringList;
+typedef pair<string, StringList> MatchPair;
+void testRegMatrix(vector<MatchPair> matchMatrix,
+                   vector<MatchPair> notMatchMatrix) {
+  for (auto i = matchMatrix.begin(); i != matchMatrix.end(); ++i) {
+    string reg = i->first;
+    auto list = i->second;
+    testRegMatch(reg, list);
+  }
+
+  for (auto j = notMatchMatrix.begin(); j != notMatchMatrix.end(); ++j) {
+    string reg = j->first;
+    auto list = j->second;
+    testRegNotMatch(reg, list);
+  }
+}
+
 void testRegTest() {
   cout << "regular test" << endl;
-  testRegMatch("a", vector<string>{"a"});
-  testRegNotMatch("a", vector<string>{"b", "c"});
-
-  testRegMatch("ab", vector<string>{"ab"});
-  testRegNotMatch("ab", vector<string>{"b", "a", "abc"});
-
-  testRegMatch("a|b", vector<string>{"a", "b"});
-  testRegNotMatch("a|b", vector<string>{"ab"});
-
-  testRegMatch("a(b|c)d", vector<string>{"abd", "acd"});
-  testRegNotMatch("a(b|c)d", vector<string>{"abcd", "ad"});
-
-  testRegMatch("a*", vector<string>{"", "a", "aa", "aaa"});
+  testRegMatrix(vector<MatchPair>{{"a", {"a"}},
+                                  {"ab", {"ab"}},
+                                  {"a|b", {"a", "b"}},
+                                  {"a(b|c)d", {"abd", "acd"}},
+                                  {"a*", {"", "a", "aa", "aaa"}},
+                                  {"ba*", {"b", "ba", "baa"}}},
+                vector<MatchPair>{{"a", {"b", "c"}},
+                                  {"ab", {"a", "b", "abc"}},
+                                  {"a|b", {"ab"}},
+                                  {"a(b|c)d", {"abcd", "ad"}},
+                                  {"a*", {"aba", "b"}},
+                                  {"ba*", {"bb"}}});
 }
 
 void testParser() {
