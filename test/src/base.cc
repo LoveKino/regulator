@@ -169,11 +169,14 @@ void testRegTest() {
 
   testRegMatch("a(b|c)d", vector<string>{"abd", "acd"});
   testRegNotMatch("a(b|c)d", vector<string>{"abcd", "ad"});
+
+  testRegMatch("a*", vector<string>{"", "a", "aa", "aaa"});
 }
 
 void testParser() {
   cout << "[Parser]" << endl;
-  displayParser(vector<string>{"ab", "abc", "ab|c", "a(b|c)", "(a(b|c)|ef)d"});
+  displayParser(
+      vector<string>{"ab", "abc", "ab|c", "a(b|c)", "(a(b|c)|ef)d", "a*"});
 }
 
 int main() {

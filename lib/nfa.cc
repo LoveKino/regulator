@@ -116,7 +116,7 @@ pair<DFA, NFA::DFA_StateNFA_SET_MAP> NFA::toDFA(unsigned int startState) {
   start = this->epsilonClosure(start);
 
   DFA dfa;
-  DFA_StateNFA_SET_MAP stateMap;
+  DFA_StateNFA_SET_MAP stateMap; // record NFA -> DFA details
 
   map<NFA::NFA_State_Set, unsigned int> dfaStates; // store (set, state)
   vector<NFA::NFA_State_Set> newAdded;
@@ -124,6 +124,7 @@ pair<DFA, NFA::DFA_StateNFA_SET_MAP> NFA::toDFA(unsigned int startState) {
   unsigned int offset = 0;
 
   dfaStates[start] = 0; // default, the start state is 0
+  stateMap[0] = start;
   newAdded.push_back(start);
 
   while (newAdded.size()) {
