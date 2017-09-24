@@ -1,97 +1,15 @@
 #include "parser.h"
 
 namespace sfsm {
-
-ThompsonNFA::ThompsonNFA(NFA nfa, unsigned int start, unsigned int end) {
-  this->nfa = nfa;
-  this->start = start;
-  this->end = end;
-}
-
-NFA &ThompsonNFA::getNFA() { return this->nfa; }
-
-unsigned int ThompsonNFA::getStart() { return this->start; }
-
-unsigned int ThompsonNFA::getEnd() { return this->end; }
-
-ThompsonConstruction::ThompsonConstruction() { this->stateCount = 0; }
-
-unsigned int ThompsonConstruction::getNewState() {
-  auto v = this->stateCount;
-
-  this->stateCount++;
-
-  return v;
-}
-
-ThompsonNFA ThompsonConstruction::emptyExpression() {
-  NFA nfa;
-  auto state = getNewState();
-  return ThompsonNFA(nfa, state, state);
-}
-
-ThompsonNFA ThompsonConstruction::symbol(string letter) {
-  NFA nfa;
-  auto start = getNewState();
-  auto end = getNewState();
-
-  nfa.addTransition(start, letter, end);
-
-  return ThompsonNFA(nfa, start, end);
-}
-
-void ThompsonConstruction::mergeNFA(NFA &nfa1, NFA &n2) {
-  auto n2Graph = n2.getTransitionGraph();
-  auto n2Eps = n2.getEpsilonTransitions();
-  // merge exist nfas
-  nfa1.getTransitionGraph().insert(n2Graph.begin(), n2Graph.end());
-  nfa1.getEpsilonTransitions().insert(n2Eps.begin(), n2Eps.end());
-}
-
-ThompsonNFA ThompsonConstruction::unionExpression(ThompsonNFA n1,
-                                                  ThompsonNFA n2) {
-  NFA nfa = n1.getNFA();
-  auto start = getNewState();
-  auto end = getNewState();
-
-  this->mergeNFA(nfa, n2.getNFA());
-
-  nfa.addEpsilonTransition(start, n1.getStart());
-  nfa.addEpsilonTransition(start, n2.getStart());
-
-  nfa.addEpsilonTransition(n1.getEnd(), end);
-  nfa.addEpsilonTransition(n2.getEnd(), end);
-
-  return ThompsonNFA(nfa, start, end);
-}
-
-ThompsonNFA ThompsonConstruction::concatExpression(ThompsonNFA n1,
-                                                   ThompsonNFA n2) {
-  NFA nfa = n1.getNFA();
-  this->mergeNFA(nfa, n2.getNFA());
-  nfa.addEpsilonTransition(n1.getEnd(), n2.getStart());
-
-  return ThompsonNFA(nfa, n1.getStart(), n2.getEnd());
-}
-
-ThompsonNFA ThompsonConstruction::star(ThompsonNFA n) {
-  auto start = this->getNewState();
-  auto end = this->getNewState();
-  auto nfa = n.getNFA();
-
-  nfa.addEpsilonTransition(start, n.getStart());
-  nfa.addEpsilonTransition(start, end);
-  nfa.addEpsilonTransition(n.getEnd(), n.getStart());
-  nfa.addEpsilonTransition(n.getEnd(), end);
-
-  return ThompsonNFA(nfa, start, end);
-}
-
 const char Parser::OR_OP = '|';
 const char Parser::STAR_OP = '*';
 const char Parser::VIRTUAL_CAT_OP = '1'; // virtual operation
 const char Parser::LEFT_BRACKET = '(';
 const char Parser::RIGHT_BRACKET = ')';
+const char Parser::RANGE_START = '[';
+const char Parser::RANGE_MID = '-';
+const char Parser::RANGE_END = ']';
+
 unordered_map<char, int> Parser::OP_PRIORITY_MAP{{'|', 1}, {'*', 4}, {'1', 1}};
 
 void Parser::runUnionOp(vector<ThompsonNFA> &valueStack) {
@@ -100,7 +18,7 @@ void Parser::runUnionOp(vector<ThompsonNFA> &valueStack) {
   valueStack.pop_back();
   auto c2 = valueStack.back();
   valueStack.pop_back();
-  valueStack.push_back(tc.unionExpression(c2, c1));
+  valueStack.push_back(this->tc.unionExpression(c2, c1));
 }
 
 void Parser::runConcatOp(vector<ThompsonNFA> &valueStack) {
@@ -117,6 +35,21 @@ void Parser::runStarOp(vector<ThompsonNFA> &valueStack) {
   auto c = valueStack.back();
   valueStack.pop_back();
   valueStack.push_back(tc.star(c));
+}
+
+ThompsonNFA Parser::rangeToNFA(char start, char end) {
+  // TODO Exception
+  if (end < start) {
+    throw runtime_error("Range out of order.");
+  }
+
+  ThompsonNFA tnfa = this->tc.symbol(string(1, start));
+
+  for (char i = start + 1; i <= end; i++) {
+    tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(string(1, i)));
+  }
+
+  return tnfa;
 }
 
 bool Parser::isNextConcated(char currentLetter, char nextLetter) {
@@ -186,14 +119,31 @@ ThompsonNFA Parser::parse(string regExp) {
 
   int index = 0;
 
-  for (auto it = regExp.begin(); it != regExp.end(); ++it, ++index) {
-    char letter = *it;
+  while (index < regExpSize) {
+    char letter = regExp[index];
+    switch (letter) {
+    case RANGE_START:
+      // TODO Exception checking
+      if (index >= regExpSize - 4 || regExp[index + 2] != RANGE_MID ||
+          regExp[index + 4] != RANGE_END) {
+        throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
+      }
 
-    if (letter == OR_OP || letter == STAR_OP) {
+      valueStack.push_back(
+          this->rangeToNFA(regExp[index + 1], regExp[index + 3]));
+
+      index += 4; // forward
+      break;
+    case OR_OP:
       this->pushOp(letter, valueStack, ops);
-    } else if (letter == LEFT_BRACKET) {
+      break;
+    case STAR_OP:
+      this->pushOp(letter, valueStack, ops);
+      break;
+    case LEFT_BRACKET:
       ops.push_back(letter);
-    } else if (letter == RIGHT_BRACKET) {
+      break;
+    case RIGHT_BRACKET:
       // pop ops until meeting left bracket
       if (!this->reduceOpsStack(valueStack, ops)) {
         throw runtime_error("bracket '()' does not close correctly.");
@@ -202,59 +152,27 @@ ThompsonNFA Parser::parse(string regExp) {
         // continue to reduce until meet LEFT_BRACKET
         this->reduceOpsStack(valueStack, ops);
       }
-    } else {
+      break;
+    default:
       valueStack.push_back(tc.symbol(string(1, letter)));
+      break;
     }
 
-    if (index < regExpSize - 1) {
-      char nextLetter = *(next(it, 1));
+    // consider concat operation
+    if (index < regExpSize - 1) { // if exists more letters
+      char nextLetter = regExp[index + 1];
       if (this->isNextConcated(letter, nextLetter)) {
         ops.push_back(VIRTUAL_CAT_OP);
       }
     }
+
+    index++;
   }
 
+  // if still remains some ops
   this->reduceOpsStack(valueStack, ops);
 
   return valueStack.back();
-}
-
-RegularExp::RegularExp(string exp) {
-  Parser parser;
-  auto tnfa = parser.parse(exp);
-  auto ret = tnfa.getNFA().toDFA(tnfa.getStart());
-  unsigned int end = tnfa.getEnd();
-
-  this->dfa = ret.first;
-  auto stateMap = ret.second;
-
-  for (auto it = stateMap.begin(); it != stateMap.end(); ++it) {
-    unsigned int state = it->first;
-    NFA::NFA_State_Set nfaStateSet = it->second;
-    if (nfaStateSet.find(end) != nfaStateSet.end()) {
-      this->ends.insert(state);
-    }
-  }
-}
-
-bool RegularExp::test(string tar) {
-  unsigned int curState = 0;
-
-  for (auto it = tar.begin(); it != tar.end(); ++it) {
-    string letter = string(1, *it);
-    int targetState = this->dfa.transit(curState, letter);
-    if (targetState == -1) {
-      return false;
-    } else {
-      curState = targetState;
-    }
-  }
-
-  if (this->ends.find(curState) == this->ends.end()) { // not accept state
-    return false;
-  }
-
-  return true;
 }
 
 } // namespace sfsm

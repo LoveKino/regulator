@@ -1,6 +1,6 @@
 #include "../../lib/dfa.h"
 #include "../../lib/nfa.h"
-#include "../../lib/parser.h"
+#include "../../lib/regularExp.h"
 #include "assert.h"
 #include <iostream>
 
@@ -175,18 +175,30 @@ void testRegMatrix(vector<MatchPair> matchMatrix,
 
 void testRegTest() {
   cout << "regular test" << endl;
-  testRegMatrix(vector<MatchPair>{{"a", {"a"}},
-                                  {"ab", {"ab"}},
-                                  {"a|b", {"a", "b"}},
-                                  {"a(b|c)d", {"abd", "acd"}},
-                                  {"a*", {"", "a", "aa", "aaa"}},
-                                  {"ba*", {"b", "ba", "baa"}}},
-                vector<MatchPair>{{"a", {"b", "c"}},
-                                  {"ab", {"a", "b", "abc"}},
-                                  {"a|b", {"ab"}},
-                                  {"a(b|c)d", {"abcd", "ad"}},
-                                  {"a*", {"aba", "b"}},
-                                  {"ba*", {"bb"}}});
+  testRegMatrix(
+      vector<MatchPair>{
+          // match case start
+          {"a", {"a"}},
+          {"ab", {"ab"}},
+          {"a|b", {"a", "b"}},
+          {"a(b|c)d", {"abd", "acd"}},
+          {"a*", {"", "a", "aa", "aaa"}},
+          {"ba*", {"b", "ba", "baa"}},
+          {"[0-4]", {"0", "1", "2", "3", "4"}},
+          {"a[0-9](b|c)", {"a2b", "a3c"}}
+          // match case end
+      },
+      vector<MatchPair>{
+          // not match case start
+          {"a", {"b", "c"}},
+          {"ab", {"a", "b", "abc"}},
+          {"a|b", {"ab"}},
+          {"a(b|c)d", {"abcd", "ad"}},
+          {"a*", {"aba", "b"}},
+          {"ba*", {"bb"}},
+          {"[0-4]", {"5", "a", "r"}},
+          {"a[0-9](b|c)", {"asb", "a3d"}} // not match case end
+      });
 }
 
 void testParser() {
