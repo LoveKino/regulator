@@ -8,7 +8,7 @@ using namespace std;
 namespace sfsm {
 
 class DFA {
-  typedef unordered_map<string, unsigned int> TransitionMap;
+  typedef unordered_map<char, unsigned int> TransitionMap;
   typedef unordered_map<unsigned int, TransitionMap> TransitionGraph;
 
 private:
@@ -17,11 +17,11 @@ private:
 public:
   // using 0 as start state
   DFA();
-  void addTransition(unsigned int from, string letter, unsigned int to);
+  void addTransition(unsigned int from, char letter, unsigned int to);
 
   void display(); // for debug
 
-  int transit(unsigned int from, string letter);
+  int transit(unsigned int from, char letter);
 
   bool operator==(DFA &other);
   bool operator!=(DFA &other);

@@ -1,3 +1,4 @@
+#include "../../lib/commonTokenReg.h"
 #include "../../lib/dfa.h"
 #include "../../lib/nfa.h"
 #include "../../lib/regularExp.h"
@@ -10,9 +11,9 @@ using namespace std;
 void testDisplayDFA() {
   cout << "[display dfa]" << endl;
   DFA dfa;
-  dfa.addTransition(0, "a", 1);
-  dfa.addTransition(0, "b", 2);
-  dfa.addTransition(1, "c", 3);
+  dfa.addTransition(0, 'a', 1);
+  dfa.addTransition(0, 'b', 2);
+  dfa.addTransition(1, 'c', 3);
 
   dfa.display();
 }
@@ -20,22 +21,22 @@ void testDisplayDFA() {
 void testEqualDFA() {
   cout << "[equal dfa]" << endl;
   DFA dfa1;
-  dfa1.addTransition(0, "a", 1);
-  dfa1.addTransition(0, "b", 2);
-  dfa1.addTransition(1, "c", 3);
-  dfa1.addTransition(1, "d", 4);
+  dfa1.addTransition(0, 'a', 1);
+  dfa1.addTransition(0, 'b', 2);
+  dfa1.addTransition(1, 'c', 3);
+  dfa1.addTransition(1, 'd', 4);
 
   DFA dfa2;
-  dfa2.addTransition(0, "a", 1);
-  dfa2.addTransition(0, "b", 2);
-  dfa2.addTransition(1, "c", 3);
-  dfa2.addTransition(1, "d", 4);
+  dfa2.addTransition(0, 'a', 1);
+  dfa2.addTransition(0, 'b', 2);
+  dfa2.addTransition(1, 'c', 3);
+  dfa2.addTransition(1, 'd', 4);
 
   DFA dfa3;
-  dfa3.addTransition(0, "a", 1);
-  dfa3.addTransition(0, "b", 2);
-  dfa3.addTransition(1, "c", 3);
-  dfa3.addTransition(1, "e", 4);
+  dfa3.addTransition(0, 'a', 1);
+  dfa3.addTransition(0, 'b', 2);
+  dfa3.addTransition(1, 'c', 3);
+  dfa3.addTransition(1, 'e', 4);
 
   assert(dfa1 == dfa2);
   assert(dfa1 != dfa3);
@@ -45,10 +46,10 @@ void testNFAEpsilonClosure() {
   cout << "[nfa epsilonClosure]" << endl;
   NFA nfa;
 
-  nfa.addTransition(0, "a", 1);
-  nfa.addTransition(1, "b", 2);
+  nfa.addTransition(0, 'a', 1);
+  nfa.addTransition(1, 'b', 2);
   nfa.addEpsilonTransition(1, 3);
-  nfa.addTransition(3, "c", 4);
+  nfa.addTransition(3, 'c', 4);
 
   // DFA dfa = nfa.toDFA();
   NFA::NFA_State_Set set0;
@@ -76,32 +77,32 @@ void testNFAToDFA() {
 
   // NFA as DFA
   NFA nfa2;
-  nfa2.addTransition(0, "a", 1);
-  nfa2.addTransition(0, "b", 2);
-  nfa2.addTransition(1, "c", 3);
-  nfa2.addTransition(2, "d", 4);
+  nfa2.addTransition(0, 'a', 1);
+  nfa2.addTransition(0, 'b', 2);
+  nfa2.addTransition(1, 'c', 3);
+  nfa2.addTransition(2, 'd', 4);
   nfa2.toDFA(0).first.display();
 
   // NFA contains sets
 
   NFA nfa3;
-  nfa3.addTransition(0, "a", 1);
-  nfa3.addTransition(0, "b", 2);
-  nfa3.addTransition(1, "c", 3);
-  nfa3.addTransition(2, "d", 4);
-  nfa3.addTransition(2, "d", 3);
+  nfa3.addTransition(0, 'a', 1);
+  nfa3.addTransition(0, 'b', 2);
+  nfa3.addTransition(1, 'c', 3);
+  nfa3.addTransition(2, 'd', 4);
+  nfa3.addTransition(2, 'd', 3);
 
   nfa3.toDFA(0).first.display();
 
   // NFA contains epsilon
 
   NFA nfa4;
-  nfa4.addTransition(0, "a", 1);
-  nfa4.addTransition(0, "a", 2);
-  nfa4.addTransition(1, "b", 3);
+  nfa4.addTransition(0, 'a', 1);
+  nfa4.addTransition(0, 'a', 2);
+  nfa4.addTransition(1, 'b', 3);
   nfa4.addEpsilonTransition(1, 4);
-  nfa4.addTransition(4, "c", 5);
-  nfa4.addTransition(4, "d", 6);
+  nfa4.addTransition(4, 'c', 5);
+  nfa4.addTransition(4, 'd', 6);
 
   nfa4.toDFA(0).first.display();
 
@@ -113,14 +114,14 @@ void testThompsonConstruct() {
   ThompsonConstruction tc;
 
   auto tnfa = tc.concatExpression(
-      tc.symbol("a"), tc.unionExpression(tc.symbol("b"), tc.symbol("c")));
+      tc.symbol('a'), tc.unionExpression(tc.symbol('b'), tc.symbol('c')));
 
   tnfa.getNFA().display();
   tnfa.getNFA().toDFA(tnfa.getStart()).first.display();
 
   cout << "test star-------------" << endl;
 
-  auto tnfa2 = tc.star(tc.concatExpression(tc.symbol("a"), tc.symbol("b")));
+  auto tnfa2 = tc.star(tc.concatExpression(tc.symbol('a'), tc.symbol('b')));
   tnfa2.getNFA().display();
   cout << "to dfa" << endl;
   cout << tnfa2.getStart() << "," << tnfa2.getEnd() << endl;
@@ -185,7 +186,11 @@ void testRegTest() {
           {"a*", {"", "a", "aa", "aaa"}},
           {"ba*", {"b", "ba", "baa"}},
           {"[0-4]", {"0", "1", "2", "3", "4"}},
-          {"a[0-9](b|c)", {"a2b", "a3c"}}
+          {"a[0-9](b|c)", {"a2b", "a3c"}},
+          {"^a", {"b", "1", "c", "@", "/"}},
+          {"c^a(e|f)", {"cce", "c1f"}}
+          //,
+          //{commonTokenReg::jsonStringExpStr, {"\"\""}}
           // match case end
       },
       vector<MatchPair>{
@@ -197,7 +202,10 @@ void testRegTest() {
           {"a*", {"aba", "b"}},
           {"ba*", {"bb"}},
           {"[0-4]", {"5", "a", "r"}},
-          {"a[0-9](b|c)", {"asb", "a3d"}} // not match case end
+          {"a[0-9](b|c)", {"asb", "a3d"}},
+          {"^a", {"a"}}, 
+          {"c^a(e|f)", {"cae", "caf"}}
+          // not match case end
       });
 }
 

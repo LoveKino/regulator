@@ -2,15 +2,25 @@
 
 namespace sfsm {
 const char Parser::OR_OP = '|';
+const char Parser::NOT_OP = '^';
 const char Parser::STAR_OP = '*';
-const char Parser::VIRTUAL_CAT_OP = '1'; // virtual operation
 const char Parser::LEFT_BRACKET = '(';
 const char Parser::RIGHT_BRACKET = ')';
 const char Parser::RANGE_START = '[';
 const char Parser::RANGE_MID = '-';
 const char Parser::RANGE_END = ']';
 
+const char Parser::VIRTUAL_CAT_OP = '1'; // virtual operation
+
 unordered_map<char, int> Parser::OP_PRIORITY_MAP{{'|', 1}, {'*', 4}, {'1', 1}};
+unordered_set<char> Parser::REG_HOLD_SYMBOLS{
+    Parser::OR_OP,        Parser::NOT_OP,        Parser::STAR_OP,
+    Parser::LEFT_BRACKET, Parser::RIGHT_BRACKET, Parser::RANGE_START,
+    Parser::RANGE_MID,    Parser::RANGE_END};
+
+bool Parser::isNormalLetter(char letter) {
+  return REG_HOLD_SYMBOLS.find(letter) == REG_HOLD_SYMBOLS.end();
+}
 
 void Parser::runUnionOp(vector<ThompsonNFA> &valueStack) {
   // TODO Exception
@@ -43,10 +53,26 @@ ThompsonNFA Parser::rangeToNFA(char start, char end) {
     throw runtime_error("Range out of order.");
   }
 
-  ThompsonNFA tnfa = this->tc.symbol(string(1, start));
+  ThompsonNFA tnfa = this->tc.symbol(start);
 
   for (char i = start + 1; i <= end; i++) {
-    tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(string(1, i)));
+    tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(i));
+  }
+
+  return tnfa;
+}
+
+// char hold 0 - 127
+ThompsonNFA Parser::notToNFA(char letter) {
+  int start = 0;
+  if (letter == 0) {
+    start = 1;
+  }
+  ThompsonNFA tnfa = this->tc.symbol(start);
+  for (int i = 0; i < 128; i++) {
+    if (letter != i) {
+      tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(i));
+    }
   }
 
   return tnfa;
@@ -122,10 +148,12 @@ ThompsonNFA Parser::parse(string regExp) {
   while (index < regExpSize) {
     char letter = regExp[index];
     switch (letter) {
-    case RANGE_START:
+    case RANGE_START: // [a-d] TODO more powerful
       // TODO Exception checking
       if (index >= regExpSize - 4 || regExp[index + 2] != RANGE_MID ||
-          regExp[index + 4] != RANGE_END) {
+          regExp[index + 4] != RANGE_END ||
+          !this->isNormalLetter(regExp[index + 1]) ||
+          !this->isNormalLetter(regExp[index + 3])) {
         throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
       }
 
@@ -133,6 +161,15 @@ ThompsonNFA Parser::parse(string regExp) {
           this->rangeToNFA(regExp[index + 1], regExp[index + 3]));
 
       index += 4; // forward
+      break;
+    case NOT_OP: // ^a TODO more powerful
+      if (index >= regExpSize - 1 || !this->isNormalLetter(regExp[index + 1])) {
+        throw runtime_error("Uncorrect not. Not grammer is like ^a.");
+      }
+
+      valueStack.push_back(this->notToNFA(regExp[index + 1]));
+
+      index++; // forward
       break;
     case OR_OP:
       this->pushOp(letter, valueStack, ops);
@@ -154,7 +191,7 @@ ThompsonNFA Parser::parse(string regExp) {
       }
       break;
     default:
-      valueStack.push_back(tc.symbol(string(1, letter)));
+      valueStack.push_back(tc.symbol(letter));
       break;
     }
 

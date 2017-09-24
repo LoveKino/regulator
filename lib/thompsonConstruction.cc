@@ -18,7 +18,7 @@ ThompsonNFA ThompsonConstruction::emptyExpression() {
   return ThompsonNFA(nfa, state, state);
 }
 
-ThompsonNFA ThompsonConstruction::symbol(string letter) {
+ThompsonNFA ThompsonConstruction::symbol(char letter) {
   NFA nfa;
   auto start = getNewState();
   auto end = getNewState();

@@ -23,8 +23,7 @@ bool RegularExp::test(string tar) {
   unsigned int curState = 0;
 
   for (auto it = tar.begin(); it != tar.end(); ++it) {
-    string letter = string(1, *it);
-    int targetState = this->dfa.transit(curState, letter);
+    int targetState = this->dfa.transit(curState, *it);
     if (targetState == -1) {
       return false;
     } else {

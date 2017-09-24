@@ -13,7 +13,7 @@ NFA::EpsilonListMap &NFA::getEpsilonTransitions() {
   return this->epsilonTransitions;
 }
 
-void NFA::addTransition(unsigned int from, string letter, unsigned int to) {
+void NFA::addTransition(unsigned int from, char letter, unsigned int to) {
   if (this->transitionGraph.find(from) == this->transitionGraph.end()) {
     TransitionMap map;
     this->transitionGraph[from] = map;
@@ -47,7 +47,7 @@ NFA::TransitionMap NFA::getTransitionMap(unsigned int from) {
   return result;
 }
 
-NFA::NFA_State_Set NFA::transit(unsigned int from, string letter) {
+NFA::NFA_State_Set NFA::transit(unsigned int from, char letter) {
   NFA_State_Set result;
   TransitionMap map = this->getTransitionMap(from);
 
@@ -60,7 +60,7 @@ NFA::NFA_State_Set NFA::transit(unsigned int from, string letter) {
   return result;
 }
 
-NFA::NFA_State_Set NFA::groupTransist(NFA_State_Set nfaSet, string letter) {
+NFA::NFA_State_Set NFA::groupTransist(NFA_State_Set nfaSet, char letter) {
   NFA_State_Set result;
 
   for (auto it = nfaSet.begin(); it != nfaSet.end(); ++it) {
@@ -71,8 +71,8 @@ NFA::NFA_State_Set NFA::groupTransist(NFA_State_Set nfaSet, string letter) {
   return result;
 }
 
-unordered_set<string> NFA::getInputSet(NFA_State_Set set) {
-  unordered_set<string> result;
+unordered_set<char> NFA::getInputSet(NFA_State_Set set) {
+  unordered_set<char> result;
 
   for (auto it = set.begin(); it != set.end(); ++it) {
     unsigned int from = *it;
@@ -174,7 +174,7 @@ void NFA::display() {
     int from = i->first;
     TransitionMap map = i->second;
     for (auto j = map.begin(); j != map.end(); ++j) {
-      string letter = j->first;
+      char letter = j->first;
       NFA_State_Set to = j->second;
       cout << from << "(" << letter << ")"
            << "->";
