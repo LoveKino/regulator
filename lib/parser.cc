@@ -290,7 +290,6 @@ ThompsonNFA Parser::parse(string regExp) {
 
     // infix operations
     case OR_OP:
-      this->reduceOpsStack(valueStack, ops);
       this->pushOp(letter, valueStack, ops);
       break;
     case STAR_OP:

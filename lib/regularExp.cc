@@ -19,8 +19,12 @@ RegularExp::RegularExp(string exp) {
   }
 }
 
+unsigned int RegularExp::getStartState() {
+    return 0;
+}
+
 bool RegularExp::test(string tar) {
-  unsigned int curState = 0;
+  unsigned int curState = this->getStartState();
 
   for (auto it = tar.begin(); it != tar.end(); ++it) {
     int targetState = this->dfa.transit(curState, *it);
@@ -37,5 +41,15 @@ bool RegularExp::test(string tar) {
 
   return true;
 }
+
+int RegularExp::transit(unsigned int state, char letter) {
+  return this->dfa.transit(state, letter);
+}
+
+bool RegularExp::isEndState(int state) {
+  return this->ends.find(state) != this->ends.end();
+}
+
+bool RegularExp::isErrorState(int state) { return state == -1; }
 
 } // namespace sfsm
