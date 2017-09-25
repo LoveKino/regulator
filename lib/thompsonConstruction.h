@@ -15,6 +15,7 @@ private:
 public:
   ThompsonConstruction();
   ThompsonNFA emptyExpression();
+  ThompsonNFA fracture();
   ThompsonNFA symbol(char letter);
   ThompsonNFA unionExpression(ThompsonNFA n1, ThompsonNFA n2);
   ThompsonNFA concatExpression(ThompsonNFA n1, ThompsonNFA n2);

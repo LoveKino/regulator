@@ -20,12 +20,13 @@ public:
   const static char RANGE_START;
   const static char RANGE_MID;
   const static char RANGE_END;
+  typedef unordered_set<char> CharSet;
 
 private:
   ThompsonConstruction tc;
 
   static unordered_map<char, int> OP_PRIORITY_MAP; // priority map
-  static unordered_set<char> REG_HOLD_SYMBOLS;
+  static CharSet REG_HOLD_SYMBOLS;
 
   bool isNormalLetter(char letter);
 
@@ -39,10 +40,14 @@ private:
   // if meet LEFT_BRACKET return true, otherwise return false.
   bool reduceOpsStack(vector<ThompsonNFA> &valueStack, vector<char> &ops);
 
-  // range
-  ThompsonNFA rangeToNFA(char start, char end);
+  CharSet getRange(char start, char end);
 
-  ThompsonNFA notToNFA(char letter);
+  // range
+  pair<CharSet, unsigned int> parseRange(string &regExp, unsigned int index); // regExp[index] is '['
+  ThompsonNFA rangeToNFA(CharSet range);
+
+  // negative
+  ThompsonNFA notToNFA(CharSet letters);
 
 public:
   ThompsonNFA parse(string regExp);

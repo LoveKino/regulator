@@ -18,6 +18,13 @@ ThompsonNFA ThompsonConstruction::emptyExpression() {
   return ThompsonNFA(nfa, state, state);
 }
 
+ThompsonNFA ThompsonConstruction::fracture() {
+  NFA nfa;
+  auto start = getNewState();
+  auto end = getNewState();
+  return ThompsonNFA(nfa, start, end);
+}
+
 ThompsonNFA ThompsonConstruction::symbol(char letter) {
   NFA nfa;
   auto start = getNewState();

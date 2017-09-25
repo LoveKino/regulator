@@ -13,7 +13,7 @@ const char Parser::RANGE_END = ']';
 const char Parser::VIRTUAL_CAT_OP = '1'; // virtual operation
 
 unordered_map<char, int> Parser::OP_PRIORITY_MAP{{'|', 1}, {'*', 4}, {'1', 1}};
-unordered_set<char> Parser::REG_HOLD_SYMBOLS{
+Parser::CharSet Parser::REG_HOLD_SYMBOLS{
     Parser::OR_OP,        Parser::NOT_OP,        Parser::STAR_OP,
     Parser::LEFT_BRACKET, Parser::RIGHT_BRACKET, Parser::RANGE_START,
     Parser::RANGE_MID,    Parser::RANGE_END};
@@ -47,31 +47,32 @@ void Parser::runStarOp(vector<ThompsonNFA> &valueStack) {
   valueStack.push_back(tc.star(c));
 }
 
-ThompsonNFA Parser::rangeToNFA(char start, char end) {
-  // TODO Exception
-  if (end < start) {
-    throw runtime_error("Range out of order.");
-  }
+ThompsonNFA Parser::rangeToNFA(CharSet range) {
+  auto i = range.begin();
+  ThompsonNFA tnfa = this->tc.symbol(*i);
+  ++i;
 
-  ThompsonNFA tnfa = this->tc.symbol(start);
-
-  for (char i = start + 1; i <= end; i++) {
-    tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(i));
+  for (; i != range.end(); ++i) {
+    tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(*i));
   }
 
   return tnfa;
 }
 
 // char hold 0 - 127
-ThompsonNFA Parser::notToNFA(char letter) {
-  int start = 0;
-  if (letter == 0) {
-    start = 1;
-  }
-  ThompsonNFA tnfa = this->tc.symbol(start);
+ThompsonNFA Parser::notToNFA(CharSet letters) {
+  ThompsonNFA tnfa = this->tc.fracture();
+
+  bool initFlag = true;
+
   for (int i = 0; i < 128; i++) {
-    if (letter != i) {
-      tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(i));
+    if (letters.find(i) == letters.end()) {
+      if (initFlag) {
+        initFlag = false;
+        tnfa = this->tc.symbol(i);
+      } else {
+        tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(i));
+      }
     }
   }
 
@@ -130,6 +131,71 @@ void Parser::pushOp(char opLetter, vector<ThompsonNFA> &valueStack,
   ops.push_back(opLetter);
 }
 
+Parser::CharSet Parser::getRange(char start, char end) {
+  CharSet range;
+
+  if (end < start) {
+    throw runtime_error("Range out of order.");
+  }
+
+  for (char i = start; i <= end; i++) {
+    range.insert(i);
+  }
+
+  return range;
+}
+
+// [0-9] [abcd] [0-9a-f]
+pair<Parser::CharSet, unsigned int>
+Parser::parseRange(string &regExp,
+                   unsigned int index) { // regExp[index] is '['
+  vector<CharSet> ranges;
+  int regExpSize = regExp.size();
+  int offset = 0;
+
+  index++;
+  bool meetEnd = false;
+
+  while (index < regExpSize) {
+    if (regExp[index] == RANGE_END) {
+      offset++;
+      meetEnd = true; // meet end.
+      break;
+    } else {
+      char start = regExp[index];
+      if (!this->isNormalLetter(start)) {
+        throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
+      }
+      if (index < regExpSize - 2 && regExp[index + 1] == RANGE_MID) {
+        char end = regExp[index + 2];
+        if (!this->isNormalLetter(end)) {
+          throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
+        }
+        ranges.push_back(this->getRange(start, end));
+        index += 2;
+        offset += 2;
+      } else {
+        ranges.push_back({regExp[index]});
+      }
+    }
+
+    offset++;
+    index++;
+  }
+
+  if (!meetEnd) {
+    throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
+  }
+
+  CharSet range;
+
+  for (auto i = ranges.begin(); i != ranges.end(); i++) {
+    range.insert(i->begin(), i->end());
+  }
+
+  return {range, offset};
+}
+
 // TODO error situations
 // infix situation
 // Shunting-yard algorithm
@@ -144,32 +210,34 @@ ThompsonNFA Parser::parse(string regExp) {
   vector<char> ops;
 
   int index = 0;
+  pair<CharSet, unsigned int> partial;
 
   while (index < regExpSize) {
     char letter = regExp[index];
     switch (letter) {
     case RANGE_START: // [a-d] TODO more powerful
       // TODO Exception checking
-      if (index >= regExpSize - 4 || regExp[index + 2] != RANGE_MID ||
-          regExp[index + 4] != RANGE_END ||
-          !this->isNormalLetter(regExp[index + 1]) ||
-          !this->isNormalLetter(regExp[index + 3])) {
-        throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
-      }
-
-      valueStack.push_back(
-          this->rangeToNFA(regExp[index + 1], regExp[index + 3]));
-
-      index += 4; // forward
+      partial = this->parseRange(regExp, index);
+      valueStack.push_back(this->rangeToNFA(partial.first));
+      index += partial.second; // forward
       break;
-    case NOT_OP: // ^a TODO more powerful
-      if (index >= regExpSize - 1 || !this->isNormalLetter(regExp[index + 1])) {
+    case NOT_OP: // ^a ^[a-d] TODO more powerful
+      if (index >= regExpSize - 1 ||
+          (!this->isNormalLetter(regExp[index + 1]) &&
+           regExp[index + 1] != RANGE_START)) {
         throw runtime_error("Uncorrect not. Not grammer is like ^a.");
       }
 
-      valueStack.push_back(this->notToNFA(regExp[index + 1]));
+      if (regExp[index + 1] == RANGE_START) {
+        index++;
+        partial = this->parseRange(regExp, index);
+        index += partial.second;
+        valueStack.push_back(this->notToNFA(partial.first));
+      } else {
+        valueStack.push_back(this->notToNFA({regExp[index + 1]}));
+        index++; // forward
+      }
 
-      index++; // forward
       break;
     case OR_OP:
       this->pushOp(letter, valueStack, ops);
@@ -210,6 +278,6 @@ ThompsonNFA Parser::parse(string regExp) {
   this->reduceOpsStack(valueStack, ops);
 
   return valueStack.back();
-}
+} // namespace sfsm
 
 } // namespace sfsm
