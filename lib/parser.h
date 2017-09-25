@@ -14,6 +14,7 @@ public:
   const static char OR_OP;
   const static char STAR_OP;
   const static char NOT_OP;
+  const static char OPTION_OP;
   const static char VIRTUAL_CAT_OP;
   const static char LEFT_BRACKET;
   const static char RIGHT_BRACKET;
@@ -33,6 +34,8 @@ private:
   void runUnionOp(vector<ThompsonNFA> &valueStack);
   void runConcatOp(vector<ThompsonNFA> &valueStack);
   void runStarOp(vector<ThompsonNFA> &valueStack);
+  void runOptionOp(vector<ThompsonNFA> &valueStack);
+
   bool isNextConcated(char currentLetter, char nextLetter);
   void pushOp(char opLetter, vector<ThompsonNFA> &valueStack,
               vector<char> &ops);

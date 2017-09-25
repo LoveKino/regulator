@@ -35,21 +35,14 @@ ThompsonNFA ThompsonConstruction::symbol(char letter) {
   return ThompsonNFA(nfa, start, end);
 }
 
-void ThompsonConstruction::mergeNFA(NFA &nfa1, NFA &n2) {
-  auto n2Graph = n2.getTransitionGraph();
-  auto n2Eps = n2.getEpsilonTransitions();
-  // merge exist nfas
-  nfa1.getTransitionGraph().insert(n2Graph.begin(), n2Graph.end());
-  nfa1.getEpsilonTransitions().insert(n2Eps.begin(), n2Eps.end());
-}
-
 ThompsonNFA ThompsonConstruction::unionExpression(ThompsonNFA n1,
                                                   ThompsonNFA n2) {
-  NFA nfa = n1.getNFA();
   auto start = getNewState();
   auto end = getNewState();
 
-  this->mergeNFA(nfa, n2.getNFA());
+  NFA nfa = n1.getNFA();
+
+  nfa.mergeNFA(n2.getNFA());
 
   nfa.addEpsilonTransition(start, n1.getStart());
   nfa.addEpsilonTransition(start, n2.getStart());
@@ -60,10 +53,48 @@ ThompsonNFA ThompsonConstruction::unionExpression(ThompsonNFA n1,
   return ThompsonNFA(nfa, start, end);
 }
 
+ThompsonNFA ThompsonConstruction::unionExpression(vector<ThompsonNFA> list) {
+  auto start = getNewState();
+  auto end = getNewState();
+
+  NFA nfa;
+  bool initFlag = true;
+
+  for (auto it = list.begin(); it != list.end(); ++it) {
+    auto next = *it;
+
+    if (initFlag) {
+      nfa = next.getNFA();
+      initFlag = false;
+    } else {
+      nfa.mergeNFA(next.getNFA());
+    }
+
+    nfa.addEpsilonTransition(start, it->getStart());
+    nfa.addEpsilonTransition(it->getEnd(), end);
+  }
+
+  return ThompsonNFA(nfa, start, end);
+}
+
+ThompsonNFA ThompsonConstruction::unionExpression(unordered_set<char> list) {
+  auto start = getNewState();
+  auto end = getNewState();
+
+  NFA nfa;
+
+  for (auto it = list.begin(); it != list.end(); ++it) {
+    auto letter = *it;
+    nfa.addTransition(start, letter, end);
+  }
+
+  return ThompsonNFA(nfa, start, end);
+}
+
 ThompsonNFA ThompsonConstruction::concatExpression(ThompsonNFA n1,
                                                    ThompsonNFA n2) {
   NFA nfa = n1.getNFA();
-  this->mergeNFA(nfa, n2.getNFA());
+  nfa.mergeNFA(n2.getNFA());
   nfa.addEpsilonTransition(n1.getEnd(), n2.getStart());
 
   return ThompsonNFA(nfa, n1.getStart(), n2.getEnd());

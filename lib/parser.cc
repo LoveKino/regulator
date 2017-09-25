@@ -4,6 +4,7 @@ namespace sfsm {
 const char Parser::OR_OP = '|';
 const char Parser::NOT_OP = '^';
 const char Parser::STAR_OP = '*';
+const char Parser::OPTION_OP = '?';
 const char Parser::LEFT_BRACKET = '(';
 const char Parser::RIGHT_BRACKET = ')';
 const char Parser::RANGE_START = '[';
@@ -12,11 +13,13 @@ const char Parser::RANGE_END = ']';
 
 const char Parser::VIRTUAL_CAT_OP = '1'; // virtual operation
 
-unordered_map<char, int> Parser::OP_PRIORITY_MAP{{'|', 1}, {'*', 4}, {'1', 1}};
+unordered_map<char, int> Parser::OP_PRIORITY_MAP{
+    {'|', 1}, {'?', 4}, {'*', 4}, {'1', 1}};
+
 Parser::CharSet Parser::REG_HOLD_SYMBOLS{
-    Parser::OR_OP,        Parser::NOT_OP,        Parser::STAR_OP,
-    Parser::LEFT_BRACKET, Parser::RIGHT_BRACKET, Parser::RANGE_START,
-    Parser::RANGE_MID,    Parser::RANGE_END};
+    Parser::OR_OP,       Parser::NOT_OP,       Parser::STAR_OP,
+    Parser::OPTION_OP,   Parser::LEFT_BRACKET, Parser::RIGHT_BRACKET,
+    Parser::RANGE_START, Parser::RANGE_MID,    Parser::RANGE_END};
 
 bool Parser::isNormalLetter(char letter) {
   return REG_HOLD_SYMBOLS.find(letter) == REG_HOLD_SYMBOLS.end();
@@ -47,40 +50,32 @@ void Parser::runStarOp(vector<ThompsonNFA> &valueStack) {
   valueStack.push_back(tc.star(c));
 }
 
+void Parser::runOptionOp(vector<ThompsonNFA> &valueStack) {
+  // TODO Exception
+  auto c = valueStack.back();
+  valueStack.pop_back();
+  valueStack.push_back(this->tc.unionExpression(c, this->tc.emptyExpression()));
+}
+
 ThompsonNFA Parser::rangeToNFA(CharSet range) {
-  auto i = range.begin();
-  ThompsonNFA tnfa = this->tc.symbol(*i);
-  ++i;
-
-  for (; i != range.end(); ++i) {
-    tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(*i));
-  }
-
-  return tnfa;
+  return this->tc.unionExpression(range);
 }
 
 // char hold 0 - 127
 ThompsonNFA Parser::notToNFA(CharSet letters) {
-  ThompsonNFA tnfa = this->tc.fracture();
-
-  bool initFlag = true;
-
+  CharSet list;
   for (int i = 0; i < 128; i++) {
     if (letters.find(i) == letters.end()) {
-      if (initFlag) {
-        initFlag = false;
-        tnfa = this->tc.symbol(i);
-      } else {
-        tnfa = this->tc.unionExpression(tnfa, this->tc.symbol(i));
-      }
+      list.insert(i);
     }
   }
 
-  return tnfa;
+  return this->tc.unionExpression(list);
 }
 
 bool Parser::isNextConcated(char currentLetter, char nextLetter) {
   return !(nextLetter == STAR_OP ||         //...*
+           nextLetter == OPTION_OP ||       // ...?
            nextLetter == OR_OP ||           // ...|
            nextLetter == RIGHT_BRACKET ||   // ...)
            currentLetter == LEFT_BRACKET || // (..
@@ -104,6 +99,10 @@ bool Parser::reduceOpsStack(vector<ThompsonNFA> &valueStack,
     case STAR_OP:
       ops.pop_back();
       this->runStarOp(valueStack);
+      break;
+    case OPTION_OP:
+      ops.pop_back();
+      this->runOptionOp(valueStack);
       break;
     case LEFT_BRACKET: // touch the bottom
       return true;
@@ -239,12 +238,19 @@ ThompsonNFA Parser::parse(string regExp) {
       }
 
       break;
+
+    // infix operations
     case OR_OP:
       this->pushOp(letter, valueStack, ops);
       break;
     case STAR_OP:
       this->pushOp(letter, valueStack, ops);
       break;
+    case OPTION_OP:
+      this->pushOp(letter, valueStack, ops);
+      break;
+
+    // brackets
     case LEFT_BRACKET:
       ops.push_back(letter);
       break;
@@ -254,8 +260,6 @@ ThompsonNFA Parser::parse(string regExp) {
         throw runtime_error("bracket '()' does not close correctly.");
       } else {
         ops.pop_back(); // pop LEFT_BRACKET
-        // continue to reduce until meet LEFT_BRACKET
-        this->reduceOpsStack(valueStack, ops);
       }
       break;
     default:
@@ -267,7 +271,7 @@ ThompsonNFA Parser::parse(string regExp) {
     if (index < regExpSize - 1) { // if exists more letters
       char nextLetter = regExp[index + 1];
       if (this->isNextConcated(letter, nextLetter)) {
-        ops.push_back(VIRTUAL_CAT_OP);
+        this->pushOp(VIRTUAL_CAT_OP, valueStack, ops);
       }
     }
 

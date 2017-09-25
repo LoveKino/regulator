@@ -180,25 +180,40 @@ void testRegTest() {
       vector<MatchPair>{
           // match case start
           {"a", {"a"}},
+          {"a?", {"", "a"}},
+          {"ca?b", {"cb", "cab"}},
           {"ab", {"ab"}},
           {"a|b", {"a", "b"}},
           {"a(b|c)d", {"abd", "acd"}},
           {"a*", {"", "a", "aa", "aaa"}},
           {"ba*", {"b", "ba", "baa"}},
+          {"ba*c", {"bc", "bac"}},
+          {"b(^[ab])*c", {"bc", "bfc"}},
           {"[0-4]", {"0", "1", "2", "3", "4"}},
           {"a[0-9](b|c)", {"a2b", "a3c"}},
           {"^a", {"b", "1", "c", "@", "/"}},
           {"c^a(e|f)", {"cce", "c1f"}},
           {"^[0-4]", {"5", "7"}},
           {"[aef]", {"a", "e", "f"}},
-          {"[0-9a-f]", {"0", "4", "9", "a", "e", "f"}}
-          //,
-          //{commonTokenReg::jsonStringExpStr, {"\"\""}}
+          {"[0-9a-f]", {"0", "4", "9", "a", "e", "f"}},
+          {"^[\"\\]", {"0", "a"}},
+          {"(^[\"\\])*", {"", "adjdsj"}},
+          {"\"(^[\"\\])*\"", {"\"\"", "\"adjdsj\""}},
+          {"((^[\"\\])|(\\[\"\\/bfnrt]))*",
+           {"", "\\n", "\\r\\nabd\\n", "today is great!"}},
+          {"((^[\"\\])|(\\([\"\\/"
+           "bfnrt]|(u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]))))*",
+           {"", "\\n", "\\r\\nabd\\n", "today is great!", "\\u1234"}},
+          {CommonTokenReg::jsonStringExpStr,
+           {"\"\"", "\"1234\"", "\"hello world!\"",
+            "\"one line \\n next line\\\"\"", "\"\\n \\r \\b \\u1234\""}}
           // match case end
       },
       vector<MatchPair>{
           // not match case start
           {"a", {"b", "c"}},
+          {"a?", {"b", "aa"}},
+          {"ca?b", {"c", "b", "ca"}},
           {"ab", {"a", "b", "abc"}},
           {"a|b", {"ab"}},
           {"a(b|c)d", {"abcd", "ad"}},
@@ -210,7 +225,8 @@ void testRegTest() {
           {"c^a(e|f)", {"cae", "caf"}},
           {"^[0-4]", {"0", "1", "2", "3", "4"}},
           {"[aef]", {"b", "7", "k"}},
-          {"[0-9a-f]", {"A", "B", "@"}}
+          {"[0-9a-f]", {"A", "B", "@"}},
+          {CommonTokenReg::jsonStringExpStr, {"\"\\u12\"", "\"\\\"", "\"\\a\""}}
           // not match case end
       });
 }
