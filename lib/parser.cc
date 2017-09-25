@@ -17,7 +17,7 @@ const char Parser::RANGE_END = ']';
 const char Parser::VIRTUAL_CAT_OP = '1'; // virtual operation
 
 unordered_map<char, int> Parser::OP_PRIORITY_MAP{
-    {'|', 1}, {'?', 4}, {'*', 4}, {'1', 1}};
+    {'|', 0}, {'?', 4}, {'*', 4}, {'1', 1}};
 
 Parser::CharSet Parser::REG_HOLD_SYMBOLS{
     Parser::OR_OP,       Parser::NOT_OP,       Parser::STAR_OP,
@@ -290,6 +290,7 @@ ThompsonNFA Parser::parse(string regExp) {
 
     // infix operations
     case OR_OP:
+      this->reduceOpsStack(valueStack, ops);
       this->pushOp(letter, valueStack, ops);
       break;
     case STAR_OP:
