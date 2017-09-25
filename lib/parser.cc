@@ -5,6 +5,9 @@ const char Parser::OR_OP = '|';
 const char Parser::NOT_OP = '^';
 const char Parser::STAR_OP = '*';
 const char Parser::OPTION_OP = '?';
+
+const char Parser::ESCAPE_SYMBOL = '\\';
+
 const char Parser::LEFT_BRACKET = '(';
 const char Parser::RIGHT_BRACKET = ')';
 const char Parser::RANGE_START = '[';
@@ -22,7 +25,8 @@ Parser::CharSet Parser::REG_HOLD_SYMBOLS{
     Parser::RANGE_START, Parser::RANGE_MID,    Parser::RANGE_END};
 
 bool Parser::isNormalLetter(char letter) {
-  return REG_HOLD_SYMBOLS.find(letter) == REG_HOLD_SYMBOLS.end();
+  return letter == ESCAPE_SYMBOL ||
+         REG_HOLD_SYMBOLS.find(letter) == REG_HOLD_SYMBOLS.end();
 }
 
 void Parser::runUnionOp(vector<ThompsonNFA> &valueStack) {
@@ -162,14 +166,26 @@ Parser::parseRange(string &regExp,
       break;
     } else {
       char start = regExp[index];
-      if (!this->isNormalLetter(start)) {
-        throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
+      if (start == ESCAPE_SYMBOL) {
+        start = this->getEscapedLetter(regExp, index);
+        index++;
+        offset++;
+      } else if (!this->isNormalLetter(start)) {
+        throwSyntaxError(regExp, index,
+                         "Uncorrect range. Range grammer is like [0-9].");
       }
+
       if (index < regExpSize - 2 && regExp[index + 1] == RANGE_MID) {
         char end = regExp[index + 2];
-        if (!this->isNormalLetter(end)) {
-          throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
+        if (end == ESCAPE_SYMBOL) {
+          end = this->getEscapedLetter(regExp, index);
+          index++;
+          offset++;
+        } else if (!this->isNormalLetter(end)) {
+          throwSyntaxError(regExp, index + 2,
+                           "Uncorrect range. Range grammer is like [0-9].");
         }
+
         ranges.push_back(this->getRange(start, end));
         index += 2;
         offset += 2;
@@ -183,7 +199,8 @@ Parser::parseRange(string &regExp,
   }
 
   if (!meetEnd) {
-    throw runtime_error("Uncorrect range. Range grammer is like [0-9].");
+    throwSyntaxError(regExp, index,
+                     "Uncorrect range. Range grammer is like [0-9].");
   }
 
   CharSet range;
@@ -193,6 +210,32 @@ Parser::parseRange(string &regExp,
   }
 
   return {range, offset};
+}
+
+void Parser::throwSyntaxError(string regExp, int errorIndex, string msg) {
+  string prev = errorIndex > 0 ? regExp.substr(max<int>(errorIndex - 5, 0),
+                                               errorIndex >= 5 ? 5 : errorIndex)
+                               : "";
+  string after =
+      errorIndex < regExp.size() - 1
+          ? regExp.substr(errorIndex + 1,
+                          min<int>(regExp.size() - 1 - errorIndex, 5))
+          : "";
+
+  throw runtime_error("[Parsing RegExp error], error position " +
+                      to_string(errorIndex) + ". Arround string is '" + prev +
+                      "  >>>" + regExp[errorIndex] + "<<<  " + after + "'." +
+                      msg);
+}
+
+char Parser::getEscapedLetter(string &regExp,
+                              unsigned int index) { // regExp[index]= '\\'
+  int regExpSize = regExp.size();
+  if (index >= regExpSize - 1) {
+    this->throwSyntaxError(regExp, index, "Missing letter to escape.");
+  }
+
+  return regExp[index + 1];
 }
 
 // TODO error situations
@@ -214,12 +257,18 @@ ThompsonNFA Parser::parse(string regExp) {
   while (index < regExpSize) {
     char letter = regExp[index];
     switch (letter) {
+    case ESCAPE_SYMBOL:
+      valueStack.push_back(this->tc.symbol(this->getEscapedLetter(regExp, index)));
+      index++;
+      break;
+
     case RANGE_START: // [a-d] TODO more powerful
       // TODO Exception checking
       partial = this->parseRange(regExp, index);
       valueStack.push_back(this->rangeToNFA(partial.first));
       index += partial.second; // forward
       break;
+
     case NOT_OP: // ^a ^[a-d] TODO more powerful
       if (index >= regExpSize - 1 ||
           (!this->isNormalLetter(regExp[index + 1]) &&
@@ -257,7 +306,8 @@ ThompsonNFA Parser::parse(string regExp) {
     case RIGHT_BRACKET:
       // pop ops until meeting left bracket
       if (!this->reduceOpsStack(valueStack, ops)) {
-        throw runtime_error("bracket '()' does not close correctly.");
+        this->throwSyntaxError(regExp, index,
+                               "Bracket '()' does not close correctly.");
       } else {
         ops.pop_back(); // pop LEFT_BRACKET
       }

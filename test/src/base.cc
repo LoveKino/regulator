@@ -183,6 +183,8 @@ void testRegTest() {
           {"a?", {"", "a"}},
           {"ca?b", {"cb", "cab"}},
           {"ab", {"ab"}},
+          {"\\|", {"|"}},
+          {"\\\\", {"\\"}},
           {"a|b", {"a", "b"}},
           {"a(b|c)d", {"abd", "acd"}},
           {"a*", {"", "a", "aa", "aaa"}},
@@ -196,19 +198,15 @@ void testRegTest() {
           {"^[0-4]", {"5", "7"}},
           {"[aef]", {"a", "e", "f"}},
           {"[0-9a-f]", {"0", "4", "9", "a", "e", "f"}},
-          {"^[\"\\]", {"0", "a"}},
-          {"(^[\"\\])*", {"", "adjdsj"}},
-          {"\"(^[\"\\])*\"", {"\"\"", "\"adjdsj\""}},
-          {"((^[\"\\])|(\\[\"\\/bfnrt]))*",
-           {"", "\\n", "\\r\\nabd\\n", "today is great!"}},
-          {"((^[\"\\])|(\\([\"\\/"
-           "bfnrt]|(u[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]))))*",
-           {"", "\\n", "\\r\\nabd\\n", "today is great!", "\\u1234"}},
+          {"^[\"\\\\]", {"h"}},
           {CommonTokenReg::jsonStringExpStr,
-           {"\"\"", "\"1234\"", "\"hello world!\"",
-            "\"one line \\n next line\\\"\"", "\"\\n \\r \\b \\u1234\""}}
+           {"\"\"", "\"hello world!\"", "\"1234\"",
+            "\"one line \\n next line\\\"\"", "\"\\n \\r \\b \\u1234\""}},
+          {CommonTokenReg::jsonNumberExpStr,
+           {"1", "0", "123", "0.12", "0.467e10", "-100.23"}}
           // match case end
       },
+
       vector<MatchPair>{
           // not match case start
           {"a", {"b", "c"}},

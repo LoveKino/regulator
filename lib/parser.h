@@ -16,6 +16,9 @@ public:
   const static char NOT_OP;
   const static char OPTION_OP;
   const static char VIRTUAL_CAT_OP;
+
+  const static char ESCAPE_SYMBOL;
+
   const static char LEFT_BRACKET;
   const static char RIGHT_BRACKET;
   const static char RANGE_START;
@@ -46,11 +49,19 @@ private:
   CharSet getRange(char start, char end);
 
   // range
-  pair<CharSet, unsigned int> parseRange(string &regExp, unsigned int index); // regExp[index] is '['
+  pair<CharSet, unsigned int>
+  parseRange(string &regExp, unsigned int index); // regExp[index] is '['
+
   ThompsonNFA rangeToNFA(CharSet range);
 
   // negative
   ThompsonNFA notToNFA(CharSet letters);
+
+  // escape
+  
+  char getEscapedLetter(string &regExp, unsigned int index);
+
+  void throwSyntaxError(string regExp, int errorIndex, string msg);
 
 public:
   ThompsonNFA parse(string regExp);
