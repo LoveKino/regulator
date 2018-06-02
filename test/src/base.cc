@@ -73,6 +73,7 @@ void testNFAToDFA() {
   // empty
   NFA nfa1;
   DFA tar1;
+  cout << "nfa1 - dfa1" << endl;
   assert(nfa1.toDFA(0).first == tar1);
 
   // NFA as DFA
@@ -81,6 +82,7 @@ void testNFAToDFA() {
   nfa2.addTransition(0, 'b', 2);
   nfa2.addTransition(1, 'c', 3);
   nfa2.addTransition(2, 'd', 4);
+  cout << "nfa2 - dfa2" << endl;
   nfa2.toDFA(0).first.display();
 
   // NFA contains sets
@@ -92,6 +94,7 @@ void testNFAToDFA() {
   nfa3.addTransition(2, 'd', 4);
   nfa3.addTransition(2, 'd', 3);
 
+  cout << "nfa3 - dfa3: contains sets" << endl;
   nfa3.toDFA(0).first.display();
 
   // NFA contains epsilon
@@ -104,6 +107,7 @@ void testNFAToDFA() {
   nfa4.addTransition(4, 'c', 5);
   nfa4.addTransition(4, 'd', 6);
 
+  cout << "nfa4 - dfa4: contains epsilon" << endl;
   nfa4.toDFA(0).first.display();
 
   // dfa.display();

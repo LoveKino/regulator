@@ -5,15 +5,18 @@
 namespace sfsm {
 NFA::NFA() {}
 
+// init-closure(a) = {a}
+void NFA::initStateClosure(unsigned int state) {
+  if (!this->epsilonClosureMap[state].size()) {
+    this->epsilonClosureMap[state].insert(state);
+  }
+}
+
 void NFA::addTransition(unsigned int from, char letter, unsigned int to) {
   this->transitionGraph[from][letter].insert(to);
 
-  if (!this->epsilonClosureMap[from].size()) {
-    this->epsilonClosureMap[from].insert(from);
-  }
-  if (!this->epsilonClosureMap[to].size()) {
-    this->epsilonClosureMap[to].insert(to);
-  }
+  this->initStateClosure(from);
+  this->initStateClosure(to);
 }
 
 void NFA::addEpsilonTransition(unsigned int from, unsigned int to) {
@@ -24,12 +27,8 @@ void NFA::addEpsilonTransition(unsigned int from, unsigned int to) {
   this->epsilonFromTransitions[to].insert(from);
 
   // epsilon closure map
-  if (!this->epsilonClosureMap[from].size()) {
-    this->epsilonClosureMap[from].insert(from);
-  }
-  if (!this->epsilonClosureMap[to].size()) {
-    this->epsilonClosureMap[to].insert(to);
-  }
+  this->initStateClosure(from);
+  this->initStateClosure(to);
 
   unordered_set<unsigned int> recordMap;
   this->deliveryClosure(from, this->epsilonClosureMap[to], recordMap);
@@ -81,13 +80,27 @@ NFA::NFA_State_Set NFA::epsilonClosure(NFA_State_Set &nfaSet) {
   return result;
 }
 
+NFA::TransitionMap NFA::getNFASetTransitionMap(NFA_State_Set &stateSet) {
+  TransitionMap newMap;
+  for (auto stateP = stateSet.begin(); stateP != stateSet.end(); ++stateP) {
+    auto map = this->getTransitionMap(*stateP);
+    // add map in newMap
+    for (auto mapItem = map.begin(); mapItem != map.end(); ++mapItem) {
+      newMap[mapItem->first].insert(mapItem->second.begin(),
+                                    mapItem->second.end());
+    }
+  }
+  return newMap;
+}
+
 pair<DFA, NFA::DFA_StateNFA_SET_MAP> NFA::toDFA(unsigned int startState) {
   // cache
-  map<NFA_State_Set, NFA_State_Set> epsilonCache;
+  // TODO instance-level cache
+  map<NFA_State_Set, NFA_State_Set> epsilonNFASetCache;
 
   NFA_State_Set startOrigin{startState};
   auto start = this->epsilonClosure(startOrigin);
-  epsilonCache[startOrigin] = start;
+  epsilonNFASetCache[startOrigin] = start;
 
   DFA dfa;
   DFA_StateNFA_SET_MAP stateMap; // record NFA -> DFA details
@@ -108,27 +121,20 @@ pair<DFA, NFA::DFA_StateNFA_SET_MAP> NFA::toDFA(unsigned int startState) {
     for (auto it = newAdded.begin(); it != newAdded.end(); ++it, ++index) {
       auto stateSet = *it;
 
-      TransitionMap newMap;
-      for (auto stateP = stateSet.begin(); stateP != stateSet.end(); ++stateP) {
-        auto map = this->getTransitionMap(*stateP);
-        // add map in newMap
-        for (auto mapItem = map.begin(); mapItem != map.end(); ++mapItem) {
-          newMap[mapItem->first].insert(mapItem->second.begin(),
-                                        mapItem->second.end());
-        }
-      }
+      TransitionMap newMap = this->getNFASetTransitionMap(stateSet);
 
       unsigned int currentDFAState = index + offset;
+      // for each input, try to find new to-state
       for (auto newItemP = newMap.begin(); newItemP != newMap.end();
            ++newItemP) {
         char letter = newItemP->first;
 
         NFA_State_Set newItem;
-        if (epsilonCache.find(newItemP->second) != epsilonCache.end()) {
-          newItem = epsilonCache[newItemP->second];
+        if (epsilonNFASetCache.find(newItemP->second) != epsilonNFASetCache.end()) {
+          newItem = epsilonNFASetCache[newItemP->second];
         } else {
           newItem = this->epsilonClosure(newItemP->second);
-          epsilonCache[newItemP->second] = newItem;
+          epsilonNFASetCache[newItemP->second] = newItem;
         }
 
         auto findedItem = dfaStates.find(newItem);

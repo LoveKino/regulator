@@ -22,10 +22,14 @@ private:
   TransitionGraph transitionGraph;
   EpsilonListMap epsilonToTransitions; // state ε-> {state}
 
+  // cache
   EpsilonListMap epsilonFromTransitions; // state ->ε {state}
   EpsilonListMap epsilonClosureMap;
 
-  void deliveryClosure(unsigned int from, NFA_State_Set &toClosure, unordered_set<unsigned int> &passSet);
+  void initStateClosure(unsigned int state);
+  void deliveryClosure(unsigned int from, NFA_State_Set &toClosure,
+                       unordered_set<unsigned int> &passSet);
+  TransitionMap getNFASetTransitionMap(NFA_State_Set &nfaSet);
 
 public:
   // using 0 as start state

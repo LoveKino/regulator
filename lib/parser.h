@@ -57,8 +57,7 @@ private:
   // negative
   ThompsonNFA notToNFA(CharSet letters);
 
-  // escape
-  
+  // escape  
   char getEscapedLetter(string &regExp, unsigned int index);
 
   void throwSyntaxError(string regExp, int errorIndex, string msg);
