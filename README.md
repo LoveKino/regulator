@@ -1,3 +1,3 @@
-# simple-fsm-dsl
+# regulator
 
-Simple FSM DSL of C++ version
+Regulation of C++ version
