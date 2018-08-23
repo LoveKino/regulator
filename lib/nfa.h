@@ -10,13 +10,18 @@
 using namespace std;
 
 namespace sfsm {
+/**
+ * NFA Graph = <V, E>
+ * state -> ch -> Set[state]
+ */
 class NFA {
 public:
-  typedef set<unsigned int> NFA_State_Set;
+  typedef unsigned int NFA_STATE;
+  typedef set<NFA_STATE> NFA_State_Set;
   typedef unordered_map<char, NFA_State_Set> TransitionMap;
-  typedef unordered_map<unsigned int, TransitionMap> TransitionGraph;
-  typedef unordered_map<unsigned int, NFA_State_Set> EpsilonListMap;
-  typedef unordered_map<unsigned int, NFA_State_Set> DFA_StateNFA_SET_MAP;
+  typedef unordered_map<NFA_STATE, TransitionMap> TransitionGraph;
+  typedef unordered_map<NFA_STATE, NFA_State_Set> EpsilonListMap;
+  typedef unordered_map<NFA_STATE, NFA_State_Set> DFA_StateNFA_SET_MAP;
 
 private:
   TransitionGraph transitionGraph;
@@ -26,29 +31,28 @@ private:
   EpsilonListMap epsilonFromTransitions; // state ->ε {state}
   EpsilonListMap epsilonClosureMap;
 
-  void initStateClosure(unsigned int state);
-  void deliveryClosure(unsigned int from, NFA_State_Set &toClosure,
-                       unordered_set<unsigned int> &passSet);
+  void initStateClosure(NFA_STATE state);
+  void deliveryClosure(NFA_STATE from, NFA_State_Set &toClosure,
+                       unordered_set<NFA_STATE> &passSet);
   TransitionMap getNFASetTransitionMap(NFA_State_Set &nfaSet);
 
 public:
   // using 0 as start state
   NFA();
-  TransitionMap getTransitionMap(unsigned int from);
+  TransitionMap getTransitionMap(NFA_STATE from);
 
-  void addTransition(unsigned int from, char letter, unsigned int to);
-  void addEpsilonTransition(unsigned int from, unsigned int to);
+  void addTransition(NFA_STATE from, char letter, NFA_STATE to);
+  void addEpsilonTransition(NFA_STATE from, NFA_STATE to);
 
   void mergeNFA(NFA &n);
 
-  NFA_State_Set transit(unsigned int from, char letter);
+  NFA_State_Set transit(NFA_STATE from, char letter);
 
   // epsilon closure
   NFA_State_Set epsilonClosure(NFA_State_Set &set);
 
   // convert to DFA
-  pair<DFA, DFA_StateNFA_SET_MAP> toDFA(unsigned int start);
-  pair<DFA, DFA_StateNFA_SET_MAP> toDFA2();
+  pair<DFA, DFA_StateNFA_SET_MAP> toDFA(NFA_STATE start);
 
   // for test
   void displayNFA_State_set(NFA_State_Set set);

@@ -5,6 +5,9 @@
 using namespace std;
 
 namespace sfsm {
+/**
+ * https://en.wikipedia.org/wiki/Thompson%27s_construction
+ */
 class ThompsonConstruction {
 private:
   unsigned int stateCount;

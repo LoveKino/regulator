@@ -6,7 +6,7 @@ using namespace std;
 namespace sfsm {
 DFA::DFA() {}
 
-void DFA::addTransition(unsigned int from, char letter, unsigned int to) {
+void DFA::addTransition(DFA::DFA_STATE from, char letter, DFA::DFA_STATE to) {
   auto it = this->transitionGraph.find(from);
   if (it == this->transitionGraph.end()) {
     TransitionMap map;
@@ -29,7 +29,7 @@ void DFA::display() {
   }
 }
 
-int DFA::transit(unsigned int from, char letter) {
+int DFA::transit(DFA::DFA_STATE from, char letter) {
   auto it = this->transitionGraph.find(from);
   if (it == this->transitionGraph.end()) {
     return -1;

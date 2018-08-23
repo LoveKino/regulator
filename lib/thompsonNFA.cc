@@ -2,7 +2,7 @@
 
 namespace sfsm {
 
-ThompsonNFA::ThompsonNFA(NFA nfa, unsigned int start, unsigned int end) {
+ThompsonNFA::ThompsonNFA(NFA nfa, NFA::NFA_STATE start, NFA::NFA_STATE end) {
   this->nfa = nfa;
   this->start = start;
   this->end = end;
@@ -10,8 +10,8 @@ ThompsonNFA::ThompsonNFA(NFA nfa, unsigned int start, unsigned int end) {
 
 NFA &ThompsonNFA::getNFA() { return this->nfa; }
 
-unsigned int ThompsonNFA::getStart() { return this->start; }
+NFA::NFA_STATE ThompsonNFA::getStart() { return this->start; }
 
-unsigned int ThompsonNFA::getEnd() { return this->end; }
+NFA::NFA_STATE ThompsonNFA::getEnd() { return this->end; }
 
 } // namespace sfsm

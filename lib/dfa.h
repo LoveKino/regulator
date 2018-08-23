@@ -7,9 +7,14 @@ using namespace std;
 
 namespace sfsm {
 
+/**
+ * graph = <V, E>
+ * state transition: state 1 -> ch -> state 2
+ */
 class DFA {
-  typedef unordered_map<char, unsigned int> TransitionMap;
-  typedef unordered_map<unsigned int, TransitionMap> TransitionGraph;
+  typedef unsigned int DFA_STATE; // use number to stand for DFA state
+  typedef unordered_map<char, DFA_STATE> TransitionMap;
+  typedef unordered_map<DFA_STATE, TransitionMap> TransitionGraph;
 
 private:
   TransitionGraph transitionGraph;
@@ -17,13 +22,19 @@ private:
 public:
   // using 0 as start state
   DFA();
-  void addTransition(unsigned int from, char letter, unsigned int to);
 
-  void display(); // for debug
+  void addTransition(DFA_STATE from, char letter, DFA_STATE to);
 
-  int transit(unsigned int from, char letter);
+  /**
+   * @return
+   *   -1, stands for not transition
+   *   other, target transition
+   */
+  int transit(DFA_STATE from, char letter);
 
   bool operator==(DFA &other);
   bool operator!=(DFA &other);
+
+  void display(); // for debug
 };
 } // namespace sfsm

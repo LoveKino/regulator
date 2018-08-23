@@ -5,17 +5,20 @@
 using namespace std;
 
 namespace sfsm {
+/**
+ * a special type of NFA
+ */
 class ThompsonNFA {
 private:
   NFA nfa;
-  unsigned int start;
-  unsigned int end;
+  NFA::NFA_STATE start;
+  NFA::NFA_STATE end;
 
 public:
-  ThompsonNFA(NFA nfa, unsigned int start, unsigned int end);
+  ThompsonNFA(NFA nfa, NFA::NFA_STATE start, NFA::NFA_STATE end);
 
   NFA &getNFA();
-  unsigned int getStart();
-  unsigned int getEnd();
+  NFA::NFA_STATE getStart();
+  NFA::NFA_STATE getEnd();
 };
 } // namespace sfsm

@@ -6,20 +6,20 @@ namespace sfsm {
 NFA::NFA() {}
 
 // init-closure(a) = {a}
-void NFA::initStateClosure(unsigned int state) {
+void NFA::initStateClosure(NFA::NFA_STATE state) {
   if (!this->epsilonClosureMap[state].size()) {
     this->epsilonClosureMap[state].insert(state);
   }
 }
 
-void NFA::addTransition(unsigned int from, char letter, unsigned int to) {
+void NFA::addTransition(NFA::NFA_STATE from, char letter, NFA::NFA_STATE to) {
   this->transitionGraph[from][letter].insert(to);
 
   this->initStateClosure(from);
   this->initStateClosure(to);
 }
 
-void NFA::addEpsilonTransition(unsigned int from, unsigned int to) {
+void NFA::addEpsilonTransition(NFA::NFA_STATE from, NFA::NFA_STATE to) {
   // add to epsilon transitions
   this->epsilonToTransitions[from].insert(to);
 
@@ -30,12 +30,12 @@ void NFA::addEpsilonTransition(unsigned int from, unsigned int to) {
   this->initStateClosure(from);
   this->initStateClosure(to);
 
-  unordered_set<unsigned int> recordMap;
+  unordered_set<NFA::NFA_STATE> recordMap;
   this->deliveryClosure(from, this->epsilonClosureMap[to], recordMap);
 }
 
-void NFA::deliveryClosure(unsigned int from, NFA_State_Set &toClosure,
-                          unordered_set<unsigned int> &passSet) {
+void NFA::deliveryClosure(NFA::NFA_STATE from, NFA_State_Set &toClosure,
+                          unordered_set<NFA::NFA_STATE> &passSet) {
   if (passSet.find(from) == passSet.end()) {
     this->epsilonClosureMap[from].insert(toClosure.begin(), toClosure.end());
     passSet.insert(from);
@@ -47,7 +47,7 @@ void NFA::deliveryClosure(unsigned int from, NFA_State_Set &toClosure,
   }
 }
 
-NFA::TransitionMap NFA::getTransitionMap(unsigned int from) {
+NFA::TransitionMap NFA::getTransitionMap(NFA::NFA_STATE from) {
   TransitionMap result;
   TransitionGraph::iterator findedItem = this->transitionGraph.find(from);
   if (findedItem != this->transitionGraph.end()) {
@@ -57,7 +57,7 @@ NFA::TransitionMap NFA::getTransitionMap(unsigned int from) {
   return result;
 }
 
-NFA::NFA_State_Set NFA::transit(unsigned int from, char letter) {
+NFA::NFA_State_Set NFA::transit(NFA::NFA_STATE from, char letter) {
   NFA_State_Set result;
   TransitionMap map = this->getTransitionMap(from);
 
@@ -93,7 +93,7 @@ NFA::TransitionMap NFA::getNFASetTransitionMap(NFA_State_Set &stateSet) {
   return newMap;
 }
 
-pair<DFA, NFA::DFA_StateNFA_SET_MAP> NFA::toDFA(unsigned int startState) {
+pair<DFA, NFA::DFA_StateNFA_SET_MAP> NFA::toDFA(NFA::NFA_STATE startState) {
   // cache
   // TODO instance-level cache
   map<NFA_State_Set, NFA_State_Set> epsilonNFASetCache;
@@ -105,9 +105,9 @@ pair<DFA, NFA::DFA_StateNFA_SET_MAP> NFA::toDFA(unsigned int startState) {
   DFA dfa;
   DFA_StateNFA_SET_MAP stateMap; // record NFA -> DFA details
 
-  map<NFA::NFA_State_Set, unsigned int> dfaStates; // store (set, state)
+  map<NFA::NFA_State_Set, NFA::NFA_STATE> dfaStates; // store (set, state)
   vector<NFA::NFA_State_Set> newAdded;
-  unsigned int last = 0;
+  NFA::NFA_STATE last = 0;
   unsigned int offset = 0;
 
   dfaStates[start] = 0; // default, the start state is 0
