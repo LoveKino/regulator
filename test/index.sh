@@ -12,7 +12,7 @@ mkdir $TEST_BUILD_DIR
 
 function runTestFile() {
     echo "[run test file] $TEST_SRC_DIR/**.cc"
-    g++ -std=c++11 $LIB_SRC_DIR/**.cc $TEST_SRC_DIR/**.cc -I$LIB_SRC_DIR -o $TEST_BUILD_DIR/test
+    g++ -std=c++11 $LIB_SRC_DIR/**.cc $TEST_SRC_DIR/**.cc -I$TEST_SRC_DIR -I$LIB_SRC_DIR -o $TEST_BUILD_DIR/test
     $TEST_BUILD_DIR/test
 }
 
