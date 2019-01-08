@@ -1,4 +1,5 @@
 #include "./util.h"
+#include "unit.h"
 #include <iostream>
 
 using namespace sfsm;
@@ -197,5 +198,12 @@ int main() {
   testThompsonConstruct();
   testParser();
   testRegTest();
+
+  auto testGroup = unit_test::group("index", vector<unit_test::UnitCase> {
+    unit_test::test("base", [&]() {})
+  });
+
+  testGroup.run();
+
   return 0;
 }
