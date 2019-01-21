@@ -200,7 +200,9 @@ int main() {
   testRegTest();
 
   auto testGroup = unit_test::group("index", vector<unit_test::UnitCase> {
-    unit_test::test("base", [&]() {})
+    unit_test::test("base", [&]() {
+      cout << "hello, case1" << endl;
+    })
   });
 
   testGroup.run();
