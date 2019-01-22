@@ -14,13 +14,26 @@ namespace unit_test {
     return std::chrono::duration_cast<std::chrono::milliseconds> (m_clock.now().time_since_epoch()).count();
   }
 
+  int BLACK = 30;
+  int RED = 31;
+  int GREEN = 32;
+  int YELLOW = 33;
+  int BLUE = 34;
+  int MAGENTA = 35;
+  int CYAN = 36;
+  int LIGHT_GRAY = 37;
+
+  string getTextWithColor(string text, int color) {
+    return "\033[1;" + std::to_string(color) + "m" + text + "\033[0m";
+  }
+
   void UnitGroup::run() {
-    cout << "\033[1;35mgroup [" << this->groupName << "]\033[0m" << endl;
+    cout << getTextWithColor("Group[" + this->groupName + "]", CYAN) << endl;
 
     vector<CaseResult> results;
 
     for (auto unitCaseP =  this -> unitCases.begin(); unitCaseP != this -> unitCases.end(); ++ unitCaseP) {
-        cout << "  \033[1;35mrun case [" << unitCaseP->caseName << "]\033[0m" << endl;
+        cout << getTextWithColor("Run case [" + unitCaseP->caseName + "]", CYAN) << endl;
         uint64_t startTime = getCurrentTime();
         try {
           unitCaseP -> run();
@@ -38,9 +51,9 @@ namespace unit_test {
         auto duration = caseRetP->endTime - caseRetP->startTime;
 
         if(caseRetP->pass) {
-          cout << "  \033[1;32m✓ [" << caseRetP->caseName << "] (" << duration << "ms)\033[0m" << endl;
+          cout << "  " << getTextWithColor("✓ [" + caseRetP->caseName + "] " + caseRetP->errMsg, GREEN) << endl;
         } else {
-          cout << "  \033[1;31m✘ [" << caseRetP->caseName << "] " << caseRetP->errMsg << "\033[0m" << endl;
+          cout << "  " << getTextWithColor("✘ [" + caseRetP->caseName + "] " + caseRetP->errMsg, RED) << endl;
         }
     }
   }
