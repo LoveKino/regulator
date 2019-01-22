@@ -4,7 +4,6 @@ using namespace std;
 
 namespace sfsm_test {
 void displayParser(vector<string> regs) {
-  cout << "[display parse result]" << endl;
   Parser parser;
   for (auto it = regs.begin(); it != regs.end(); ++it) {
     ThompsonNFA tnfa = parser.parse(*it);
@@ -15,19 +14,15 @@ void displayParser(vector<string> regs) {
 }
 
 void testRegMatch(string reg, vector<string> texts) {
-  cout << "[test reg match]" << endl;
   RegularExp exp(reg);
   for (auto it = texts.begin(); it != texts.end(); ++it) {
-    cout << "regular expression is " << reg << ", text is " << *it << endl;
     assert(exp.test(*it));
   }
 }
 
 void testRegNotMatch(string reg, vector<string> texts) {
-  cout << "[test reg not match]" << endl;
   RegularExp exp(reg);
   for (auto it = texts.begin(); it != texts.end(); ++it) {
-    cout << "regular expression is " << reg << ", text is " << *it << endl;
     assert(!exp.test(*it));
   }
 }

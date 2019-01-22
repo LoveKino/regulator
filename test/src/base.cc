@@ -191,18 +191,34 @@ void testParser() {
 }
 
 int main() {
-  testDisplayDFA();
-  testEqualDFA();
-  testNFAEpsilonClosure();
-  testNFAToDFA();
-  testThompsonConstruct();
-  testParser();
-  testRegTest();
-
   auto testGroup = unit_test::group("index", vector<unit_test::UnitCase> {
-    unit_test::test("base", [&]() {
-      cout << "hello, case1" << endl;
-    })
+    unit_test::test("displayDFA", [&]() {
+      testDisplayDFA();
+    }),
+
+    unit_test::test("testNFAEpsilonClosure", [&]() {
+      testNFAEpsilonClosure();
+    }),
+
+    unit_test::test("testEqualDFA", [&]() {
+      testEqualDFA();
+    }),
+
+    unit_test::test("testNFAToDFA", [&]() {
+      testNFAToDFA();
+    }),
+
+    unit_test::test("testThompsonConstruct", [&]() {
+      testThompsonConstruct();
+    }),
+
+    unit_test::test("testParser", [&]() {
+      testParser();
+    }),
+
+    unit_test::test("testRegTest", [&]() {
+      testRegTest();
+    }),
   });
 
   testGroup.run();
