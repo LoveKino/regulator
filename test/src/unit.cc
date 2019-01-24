@@ -33,7 +33,7 @@ namespace unit_test {
     vector<CaseResult> results;
 
     for (auto unitCaseP =  this -> unitCases.begin(); unitCaseP != this -> unitCases.end(); ++ unitCaseP) {
-        cout << getTextWithColor("Run case [" + unitCaseP->caseName + "]", CYAN) << endl;
+        cout << getTextWithColor("  - Run case [" + unitCaseP->caseName + "]", CYAN) << endl;
         uint64_t startTime = getCurrentTime();
         try {
           unitCaseP -> run();
@@ -47,13 +47,14 @@ namespace unit_test {
     }
 
     // display summarise
+    cout << getTextWithColor("Group[" + this->groupName + "]", CYAN) << endl;
     for(auto caseRetP = results.begin(); caseRetP != results.end(); ++caseRetP) {
         auto duration = caseRetP->endTime - caseRetP->startTime;
 
         if(caseRetP->pass) {
-          cout << "  " << getTextWithColor("✓ [" + caseRetP->caseName + "] " + caseRetP->errMsg, GREEN) << endl;
+          cout << "  " << getTextWithColor("✓ [" + caseRetP->caseName + "] " + caseRetP->errMsg, GREEN) << "(" << (caseRetP->endTime - caseRetP->startTime) << "ms)" << endl;
         } else {
-          cout << "  " << getTextWithColor("✘ [" + caseRetP->caseName + "] " + caseRetP->errMsg, RED) << endl;
+          cout << "  " << getTextWithColor("✘ [" + caseRetP->caseName + "] " + caseRetP->errMsg, RED) << "(" << (caseRetP->endTime - caseRetP->startTime) << "ms)" << endl;
         }
     }
   }

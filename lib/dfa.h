@@ -35,6 +35,7 @@ public:
   bool operator==(DFA &other);
   bool operator!=(DFA &other);
 
-  void display(); // for debug
+  string toString(); // for debug
+  void display();
 };
 } // namespace sfsm

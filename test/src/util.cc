@@ -2,6 +2,7 @@
 using namespace sfsm;
 using namespace std;
 
+// TODO input-output matrix (equal, not equal)
 namespace sfsm_test {
 void displayParser(vector<string> regs) {
   Parser parser;

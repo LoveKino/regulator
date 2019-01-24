@@ -15,7 +15,8 @@ void DFA::addTransition(DFA::DFA_STATE from, char letter, DFA::DFA_STATE to) {
   this->transitionGraph[from][letter] = to;
 }
 
-void DFA::display() {
+string DFA::toString() {
+  string text = "";
   for (auto i = this->transitionGraph.begin(); i != this->transitionGraph.end();
        ++i) {
     int from = i->first;
@@ -23,10 +24,20 @@ void DFA::display() {
     for (auto j = map.begin(); j != map.end(); ++j) {
       char letter = j->first;
       int to = j->second;
-      cout << from << "(" << letter << ")"
-           << "->" << to << endl;
+      string line = std::to_string(from) + "(" + letter + ")" + "->" + std::to_string(to);
+      if(text.size() == 0) {
+        text += line;
+      } else {
+        text += "\n" + line;
+      }
     }
   }
+
+  return text;
+}
+
+void DFA::display() {
+  cout << this -> toString();
 }
 
 int DFA::transit(DFA::DFA_STATE from, char letter) {
