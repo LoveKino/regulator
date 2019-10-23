@@ -1,9 +1,9 @@
 #pragma once
 
-#include "../../lib/commonTokenReg.h"
-#include "../../lib/dfa.h"
-#include "../../lib/nfa.h"
-#include "../../lib/regularExp.h"
+#include "../lib/commonTokenReg.h"
+#include "../lib/dfa.h"
+#include "../lib/nfa.h"
+#include "../lib/regularExp.h"
 #include "assert.h"
 #include <iostream>
 
