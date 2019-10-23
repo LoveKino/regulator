@@ -1,5 +1,5 @@
 #include "./util.h"
-#include "unit.h"
+#include "../../ccunit/lib/unit.h"
 #include <iostream>
 
 using namespace sfsm;

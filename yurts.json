@@ -1,4 +1,7 @@
 {
-    "name": "regulator",
-    "deps": {}
+    "deps": {
+        "ccunit": {
+            "repo": "git@github.com:LoveKino/ccunit.git"
+        }
+    }
 }
