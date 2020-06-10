@@ -4,16 +4,6 @@ using namespace std;
 
 // TODO input-output matrix (equal, not equal)
 namespace sfsm_test {
-void displayParser(vector<string> regs) {
-  Parser parser;
-  for (auto it = regs.begin(); it != regs.end(); ++it) {
-    ThompsonNFA tnfa = parser.parse(*it);
-
-    cout << "regular expression is " << *it << endl;
-    tnfa.getNFA().toDFA(tnfa.getStart()).first.display();
-  }
-}
-
 void testRegMatch(string reg, vector<string> texts) {
   RegularExp exp(reg);
   for (auto it = texts.begin(); it != texts.end(); ++it) {

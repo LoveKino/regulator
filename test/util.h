@@ -11,8 +11,6 @@ using namespace sfsm;
 using namespace std;
 
 namespace sfsm_test {
-void displayParser(vector<string> regs);
-
 void testRegMatch(string reg, vector<string> texts);
 
 void testRegNotMatch(string reg, vector<string> texts);

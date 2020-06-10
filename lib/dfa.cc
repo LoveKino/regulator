@@ -15,10 +15,23 @@ void DFA::addTransition(DFA::DFA_STATE from, char letter, DFA::DFA_STATE to) {
   this->transitionGraph[from][letter] = to;
 }
 
+int DFA::transit(DFA::DFA_STATE from, char letter) {
+  auto it = this->transitionGraph.find(from);
+  if (it == this->transitionGraph.end()) {
+    return -1;
+  }
+  auto transitionMap = this->transitionGraph[from];
+  auto tar = transitionMap.find(letter);
+  if (tar == transitionMap.end()) {
+    return -1;
+  }
+
+  return transitionMap[letter];
+}
+
 string DFA::toString() {
   string text = "";
-  for (auto i = this->transitionGraph.begin(); i != this->transitionGraph.end();
-       ++i) {
+  for (auto i = this->transitionGraph.begin(); i != this->transitionGraph.end(); ++i) {
     int from = i->first;
     TransitionMap map = i->second;
     for (auto j = map.begin(); j != map.end(); ++j) {
@@ -38,20 +51,6 @@ string DFA::toString() {
 
 void DFA::display() {
   cout << this -> toString();
-}
-
-int DFA::transit(DFA::DFA_STATE from, char letter) {
-  auto it = this->transitionGraph.find(from);
-  if (it == this->transitionGraph.end()) {
-    return -1;
-  }
-  auto transitionMap = this->transitionGraph[from];
-  auto tar = transitionMap.find(letter);
-  if (tar == transitionMap.end()) {
-    return -1;
-  }
-
-  return transitionMap[letter];
 }
 
 bool DFA::operator==(DFA &other) {

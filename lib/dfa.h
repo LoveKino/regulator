@@ -31,11 +31,10 @@ public:
    *   other, target transition
    */
   int transit(DFA_STATE from, char letter);
+  string toString();
+  void display();
 
   bool operator==(DFA &other);
   bool operator!=(DFA &other);
-
-  string toString(); // for debug
-  void display();
 };
 } // namespace sfsm

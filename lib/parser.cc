@@ -153,7 +153,7 @@ pair<Parser::CharSet, unsigned int>
 Parser::parseRange(string &regExp,
                    unsigned int index) { // regExp[index] is '['
   vector<CharSet> ranges;
-  int regExpSize = regExp.size();
+  unsigned int regExpSize = regExp.size();
   int offset = 0;
 
   index++;
@@ -217,7 +217,7 @@ void Parser::throwSyntaxError(string regExp, int errorIndex, string msg) {
                                                errorIndex >= 5 ? 5 : errorIndex)
                                : "";
   string after =
-      errorIndex < regExp.size() - 1
+      (long unsigned int) errorIndex < regExp.size() - 1
           ? regExp.substr(errorIndex + 1,
                           min<int>(regExp.size() - 1 - errorIndex, 5))
           : "";
@@ -230,7 +230,7 @@ void Parser::throwSyntaxError(string regExp, int errorIndex, string msg) {
 
 char Parser::getEscapedLetter(string &regExp,
                               unsigned int index) { // regExp[index]= '\\'
-  int regExpSize = regExp.size();
+  unsigned int regExpSize = regExp.size();
   if (index >= regExpSize - 1) {
     this->throwSyntaxError(regExp, index, "Missing letter to escape.");
   }
